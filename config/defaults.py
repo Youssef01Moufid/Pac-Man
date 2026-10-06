@@ -28,17 +28,24 @@ class BaseValidator(ABC):
 class IntRangeValidator(BaseValidator):
     """Validates an int is within [min_val, max_val]; resets to default if out of range."""
 
-    def __init__(self, min_val: float = float("-inf"), max_val: float = float("inf")) -> None:
+    def __init__(self, min_val: int | None = None, max_val: int | None = None) -> None:
         self.min_val = min_val
         self.max_val = max_val
 
     def validate(self, raw_val: Any, default: Any, field_name: str) -> ValidationResult:
-        if raw_val < self.min_val or raw_val > self.max_val:
+        too_low = self.min_val is not None and raw_val < self.min_val
+        too_high = self.max_val is not None and raw_val > self.max_val
+
+        if too_low or too_high:
+            min_str = self.min_val if self.min_val is not None else "-inf"
+            max_str = self.max_val if self.max_val is not None else "inf"
+
             msg = (
                 f"'{field_name}' value {raw_val} outside range "
-                f"[{self.min_val}..{self.max_val}]. Defaulted to {default}."
+                f"[{min_str}..{max_str}]. Defaulted to {default}."
             )
             return ValidationResult(default, msg)
+
         return ValidationResult(raw_val)
 
 
@@ -67,7 +74,6 @@ class DimensionValidator(BaseValidator):
         else:
             val = raw_val
 
-        # Force odd number
         if val % 2 == 0:
             val = val + 1 if val < self.max_val else val - 1
 
@@ -90,6 +96,7 @@ class LevelsValidator(BaseValidator):
         self.dim_validator = DimensionValidator(dim_min, dim_max)
 
     def validate(self, raw_val: Any, default: Any, field_name: str) -> ValidationResult:
+
         if not isinstance(raw_val, list):
             msg = f"'{field_name}' must be a list. Used {len(default)} default levels."
             return ValidationResult(default, msg)
