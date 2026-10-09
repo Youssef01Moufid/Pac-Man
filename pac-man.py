@@ -1,22 +1,44 @@
-class IntRangeValidator(BaseValidator):
-    """Validates an int is within [min_val, max_val]; resets to default if out of range."""
+import logging
+from pathlib import Path
 
-    def __init__(self, min_val: int | None = None, max_val: int | None = None) -> None:
-        self.min_val = min_val
-        self.max_val = max_val
+# Adjust import path to match your project layout
+from config.loader import ConfigLoader
 
-    def validate(self, raw_val: Any, default: Any, field_name: str) -> ValidationResult:
-        too_low = self.min_val is not None and raw_val < self.min_val
-        too_high = self.max_val is not None and raw_val > self.max_val
+# Enable logging to see any warnings/fallbacks if values in the file are invalid
+logging.basicConfig(level=logging.WARNING, format="%(levelname)s: %(message)s")
 
-        if too_low or too_high:
-            min_str = self.min_val if self.min_val is not None else "-inf"
-            max_str = self.max_val if self.max_val is not None else "inf"
 
-            msg = (
-                f"'{field_name}' value {raw_val} outside range "
-                f"[{min_str}..{max_str}]. Defaulted to {default}."
-            )
-            return ValidationResult(default, msg)
+def main() -> None:
+    # 1. Target your specific config file
+    config_path = Path("/home/ymoufid/Desktop/pac_man/config_file.json")
 
-        return ValidationResult(raw_val)
+    print(f"Loading configuration from: {config_path}\n")
+
+    # 2. Instantiate loader and load the config
+    loader = ConfigLoader(config_path)
+    config = loader.load()
+
+    # 3. Print the resolved attributes
+    print("=" * 40)
+    print("RESOLVED CONFIGURATION")
+    print("=" * 40)
+    print(f"lives                   = {config.lives}")
+    print(f"pacgum                  = {config.pacgum}")
+    print(f"highscore_filename      = {config.highscore_filename}")
+    print(f"seed                    = {config.seed}")
+    print(f"level_max_time          = {config.level_max_time}")
+    print(f"points_per_pacgum       = {config.points_per_pacgum}")
+    print(f"points_per_super_pacgum = {config.points_per_super_pacgum}")
+    print(f"points_per_ghost        = {config.points_per_ghost}")
+    print(f"levels count            = {len(config.levels)}")
+    print("-" * 40)
+
+    # 4. Print individual levels
+    for i, level in enumerate(config.levels, start=1):
+        print(f"Level {i}: width={level.width}, height={level.height}")
+    
+    print("=" * 40)
+
+
+if __name__ == "__main__":
+    main()
