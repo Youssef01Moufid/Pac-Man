@@ -2,6 +2,7 @@
 
 import logging
 from mazegenerator.mazegenerator import MazeGenerator
+from .grid import Tile, TileGrid
 
 logger = logging.getLogger(__name__)
 
@@ -70,3 +71,49 @@ class MazeAdapter:
             )
             return self._fallback_raw()
         return raw
+
+    def _expand(self, raw: list[list[int]]) -> TileGrid:
+        """Convert the raw wall-bit maze into a tile grid."""
+        cell_height = len(raw)
+        cell_width = len(raw[0])
+
+        tile_width = cell_width * 2 + 1
+        tile_height = cell_height * 2 + 1
+
+        grid = TileGrid(tile_width, tile_height)
+
+        for y, row in enumerate(raw):
+            for x, value in enumerate(row):
+                if value == 15:
+                    continue
+
+                grid.set_floor(2 * y + 1, 2 * x + 1)
+
+                if x + 1 < cell_width:
+                    neighbor = raw[y][x + 1]
+                    if (value & 2) == 0 and (neighbor & 8) == 0:
+                        grid.set_floor(2 * y + 1, 2 * x + 2)
+
+                if y + 1 < cell_height:
+                    neighbor = raw[y + 1][x]
+                    if (value & 4) == 0 and (neighbor & 1) == 0:
+                        grid.set_floor(2 * y + 2, 2 * x + 1)
+
+        return grid
+
+    def generate(self, seed: int = 0) -> TileGrid:
+        """Generate a maze and return it as a tile grid.
+
+        Args:
+            seed: A value above 0 gives the same maze every time (use it
+                for level 1). Zero or below gives a different random maze
+                on each call.
+
+        Returns:
+            A TileGrid whose outer border is wall. If the external
+            generator fails, a small built-in maze is returned instead, so
+            the grid can be smaller than the requested size. Always read
+            width and height from the returned grid, not from the config.
+        """
+        raw = self._generate_raw(seed)
+        return self._expand(raw)
