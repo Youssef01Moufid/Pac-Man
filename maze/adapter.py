@@ -2,7 +2,7 @@
 
 import logging
 from mazegenerator.mazegenerator import MazeGenerator
-from .grid import Tile, TileGrid
+from .grid import TileGrid
 
 logger = logging.getLogger(__name__)
 

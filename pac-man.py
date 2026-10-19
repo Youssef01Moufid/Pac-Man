@@ -1,89 +1,98 @@
-"""Main entry point for the Pac-Man game."""
+"""Draw every level of a config as a picture and open it in the browser.
+
+Writes maze_preview.html in the current folder.
+Run from the project root:  python3 maze_preview.py config_file.json
+"""
 
 import sys
-import logging
-import pygame
+import webbrowser
 from pathlib import Path
 
-# Adjust imports based on your project structure
 from config.loader import ConfigLoader
 from maze.adapter import MazeAdapter
 from maze.grid import TileGrid
 
-# --- Configuration & Colors ---
-TILE_SIZE = 24  # Size of each square in pixels
-FPS = 60
+TILE = 14  # pixels per tile
+WALL_COLOR = "#2a3cd0"
+FLOOR_COLOR = "#05050f"
+OUTPUT = Path("maze_preview.html")
 
-COLOR_BG = (0, 0, 0)          # Black floor
-COLOR_WALL = (33, 33, 255)    # Classic Pac-Man Blue
+PAGE_HEAD = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pac-Man maze preview</title>
+<style>
+body { background: #111; color: #ddd; font-family: sans-serif; margin: 24px; }
+h1 { font-size: 22px; }
+h2 { font-size: 16px; margin: 28px 0 4px; }
+p { margin: 0 0 8px; color: #999; font-size: 13px; }
+svg { max-width: 100%; height: auto; }
+</style>
+</head>
+<body>
+<h1>Pac-Man maze preview</h1>
+"""
+
+PAGE_TAIL = "\n</body>\n</html>\n"
 
 
-def draw_maze(screen: pygame.Surface, grid: TileGrid) -> None:
-    """Renders the TileGrid onto the Pygame surface."""
+def grid_to_svg(grid: TileGrid) -> str:
+    """Return an <svg> picture of the grid: blue walls, black corridors."""
+    runs = []
     for row in range(grid.height):
-        for col in range(grid.width):
-            # Calculate pixel coordinates
-            x = col * TILE_SIZE
-            y = row * TILE_SIZE
-            
-            # Create a rectangle for the tile
-            rect = pygame.Rect(x, y, TILE_SIZE, TILE_SIZE)
-            
+        col = 0
+        while col < grid.width:
             if not grid.is_floor(row, col):
-                # Draw solid blue block for walls
-                pygame.draw.rect(screen, COLOR_WALL, rect)
-                
-                # Optional: draw a slightly darker inner border for depth
-                pygame.draw.rect(screen, (20, 20, 150), rect, width=2)
+                col += 1
+                continue
+            start = col
+            while col < grid.width and grid.is_floor(row, col):
+                col += 1
+            length = col - start
+            runs.append(f"M{start} {row}h{length}v1h-{length}z")
+    path_data = "".join(runs)
+    return (
+        f'<svg viewBox="0 0 {grid.width} {grid.height}" '
+        f'width="{grid.width * TILE}" height="{grid.height * TILE}" '
+        'shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">'
+        f'<rect width="{grid.width}" height="{grid.height}" '
+        f'fill="{WALL_COLOR}"/>'
+        f'<path d="{path_data}" fill="{FLOOR_COLOR}"/>'
+        "</svg>"
+    )
 
 
-def main() -> None:
-    logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
+def main() -> int:
+    """Build every level from the config and write the preview page."""
+    if len(sys.argv) != 2:
+        print("Usage: python3 maze_preview.py <config.json>")
+        return 1
 
-    # 1. Load the first level from the configuration
-    config_path = sys.argv[1] if len(sys.argv) > 1 else "config_file.json"
-    loader = ConfigLoader(config_path)
-    config = loader.load()
-    level = config.levels[0]
+    config = ConfigLoader(sys.argv[1]).load()
+    sections = []
+    for index, level in enumerate(config.levels):
+        seed = config.seed if index == 0 else 0
+        grid = MazeAdapter(level.width, level.height).generate(seed)
+        kind = f"fixed seed {seed}" if index == 0 else "random"
+        sections.append(
+            f"<h2>Level {index + 1}</h2>"
+            f"<p>asked {level.width}x{level.height}, "
+            f"got {grid.width}x{grid.height}, {kind}</p>"
+            f"{grid_to_svg(grid)}"
+        )
 
-    # 2. Generate the maze using the adapter
-    # If the generator fails, the adapter safely returns the 11x11 fallback
-    adapter = MazeAdapter(width=level.width, height=level.height)
-    grid = adapter.generate(seed=config.seed)
+    page = PAGE_HEAD + "\n".join(sections) + PAGE_TAIL
+    try:
+        OUTPUT.write_text(page, encoding="utf-8")
+    except OSError as err:
+        print(f"Could not write {OUTPUT}: {err}")
+        return 1
 
-    # 3. Initialize Pygame
-    pygame.init()
-    
-    # Calculate window size dynamically based on the generated grid
-    window_width = grid.width * TILE_SIZE
-    window_height = grid.height * TILE_SIZE
-    screen = pygame.display.set_mode((window_width, window_height))
-    pygame.display.set_caption(f"Pac-Man - Level 1 ({grid.width}x{grid.height})")
-    
-    clock = pygame.time.Clock()
-
-    # 4. Main Game Loop
-    running = True
-    while running:
-        # Event handling (Keyboard/Mouse)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    running = False
-
-        # Rendering
-        screen.fill(COLOR_BG)          # Clear the screen to black
-        draw_maze(screen, grid)        # Draw the walls
-        
-        pygame.display.flip()          # Swap the display buffer to screen
-        clock.tick(FPS)                # Limit frame rate to 60 FPS
-
-    # 5. Cleanup
-    pygame.quit()
-    sys.exit()
+    print(f"Wrote {OUTPUT.resolve()}")
+    webbrowser.open(OUTPUT.resolve().as_uri())
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
