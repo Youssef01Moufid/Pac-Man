@@ -1,68 +1,53 @@
-from .grid import TileGrid
-
-
 class Populate:
 
-    def __init__(self, grid: TileGrid) -> None:
-        """Chooses where things start inside a maze (spawns, pacgums)."""
-        self.grid = grid
+    def __init__(self, maze: list[list[int]], width: int, height: int) -> None:
+        self.width = width
+        self.height = height
+        self.maze = maze
+
+    def _get_OpenCells(self) -> list[tuple[int, int]]:
+
+        open_cells: list[tuple[int, int]] = []
+
+        for i, row in enumerate(self.maze):
+            for j, raw in enumerate(self.maze[0]):
+                if self.maze[i][j] != 15:
+                    open_cells.append((i, j))
+
+        return open_cells
+
+    def _getDist(self, center_w: int, center_h: int) -> dict[tuple[int, int], int]:
+
+        openCells: list[tuple[int, int]] = self._get_OpenCells()
+        dists: dict[tuple[int, int], int] = {}
+
+        for i, j in openCells:
+            dist = abs(center_h - i) + abs(center_w - j)
+            dists[i, j] = dist
+
+        return dists
 
     def find_player_spawn(self) -> tuple[int, int]:
-        """Keep the grid that will be populated."""
-        center_row = self.grid.height // 2
-        center_col = self.grid.width // 2
-        floor_tiles: list[tuple[int, int]] = []
 
-        for row in range(self.grid.height):
-            for col in range(self.grid.width):
-                if self.grid.is_floor(row, col):
-                    floor_tiles.append((row, col))
+        center_w = self.width // 2
+        center_h = self.height // 2
 
-        def score(tile: tuple[int, int]) -> tuple[int, int, int]:
-            row, col = tile
-            distance = abs(row - center_row) + abs(col - center_col)
-            return (distance, row, col)
-
-        return min(floor_tiles, key=score)
+        dists: dict[tuple[int, int], int] = self._getDist(center_w, center_h)
+        playerDim = min(dists, key=dists.get)
+        return playerDim
 
     def find_ghosts_spawn(self) -> list[tuple[int, int]]:
-        """Find up to four distinct floor tiles near the corners."""
-        candidates = [
-            (1, 1),
-            (1, self.grid.width - 2),
-            (self.grid.height - 2, 1),
-            (self.grid.height - 2, self.grid.width - 2),
-        ]
 
-        player_spawn = self.find_player_spawn()
-        ghosts_spawn: list[tuple[int, int]] = []
+        ghostsDim: list[tuple[int, int]] = []
 
-        for row, col in candidates:
-            position = (row, col)
-
-            if (
-                self.grid.is_floor(row, col)
-                and position != player_spawn
-                and position not in ghosts_spawn
-            ):
-                ghosts_spawn.append(position)
-
-        return ghosts_spawn
+        ghostsDim.append((0, 0))
+        ghostsDim.append((0, self.width - 1))
+        ghostsDim.append((self.height - 1, 0))
+        ghostsDim.append((self.height - 1, self.width - 1))
+        return ghostsDim
 
     def find_pacgum_spawn(self) -> list[tuple[int, int]]:
-        """Find floor tiles not reserved for Pac-Man or ghosts."""
-        occupied = {
-            self.find_player_spawn(),
-            *self.find_ghosts_spawn(),
-        }
+        return self._get_OpenCells()
 
-        pacgum_spawn: list[tuple[int, int]] = []
-
-        for row in range(self.grid.height):
-            for col in range(self.grid.width):
-                position = (row, col)
-
-                if self.grid.is_floor(row, col) and position not in occupied:
-                    pacgum_spawn.append(position)
-
-        return pacgum_spawn
+    def find_superpacgum_spawn(self) -> list[tuple[int, int]]:
+        return self.find_ghosts_spawn()
