@@ -5,9 +5,8 @@
 
 
 import pygame
-from maze.mazegen import MazeGen
 from ui.mazedrawer import MazeDrawer 
-
+from ui.title import TitleDrawer
 class AppRender:
 
     def __init__(self):
@@ -24,7 +23,7 @@ class AppRender:
         self.screen_h = self.screen.get_height()
 
     
-    def screen_render(self, mazedrawer: MazeDrawer):
+    def screen_render(self, mazedrawer: MazeDrawer, title: TitleDrawer):
         """
             Instance method to draw the surface screen.
         """
@@ -44,10 +43,8 @@ class AppRender:
                 
                     if event.key == pygame.K_ESCAPE:
 
-                        print(f"Width screen: {self.screen_w} px")
-                        print(f"Height screen: {self.screen_h} px")
                         run = False
-
+            title.draw_title()
             mazedrawer.draw_maze()
             pygame.display.flip()
 
