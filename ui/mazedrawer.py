@@ -42,9 +42,9 @@ class MazeDrawer:
     def draw_wall(self, p1: tuple[int, int], p2: tuple[int, int], thickness: int) -> None:
         """ Instance method draw the wall """
 
-        pygame.draw.line(self.screen, "blue",p1, p2, thickness)
-        pygame.draw.circle(self.screen, "blue", p1, thickness // 2.5)
-        pygame.draw.circle(self.screen, "blue", p2, thickness // 2.5)
+        pygame.draw.line(self.screen, "grey",p1, p2, thickness)
+        pygame.draw.circle(self.screen, "grey", p1, thickness // 2.5)
+        pygame.draw.circle(self.screen, "grey", p2, thickness // 2.5)
 
 
 
@@ -66,7 +66,7 @@ class MazeDrawer:
                 if cell == 15:
                     pygame.draw.rect(
                         self.screen,
-                        'cyan1',
+                        'lightyellow',
                         (x, y, cell_size, cell_size)
                     )
 

@@ -7,6 +7,7 @@
 import pygame
 from ui.mazedrawer import MazeDrawer 
 from ui.title import TitleDrawer
+
 class AppRender:
 
     def __init__(self):
@@ -44,7 +45,8 @@ class AppRender:
                     if event.key == pygame.K_ESCAPE:
 
                         run = False
-            title.draw_title()
+            
+            title.draw()
             mazedrawer.draw_maze()
             pygame.display.flip()
 
