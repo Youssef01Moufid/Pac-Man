@@ -1,6 +1,6 @@
 """The player: walks from cell to cell along the corridors of the maze."""
 
-from maze.movement import Direction, Movement
+from model.movement import Direction, Movement
 
 _OPPOSITE: dict[Direction, Direction] = {
     Direction.NORTH: Direction.SOUTH,
