@@ -6,6 +6,8 @@ import pygame
 from config.loader import ConfigLoader
 from maze.mazegen import MazeGen
 from maze.populate import Populate
+
+# Adjust these imports if your folder structure differs
 from model.movement import Direction, Movement
 from model.player import Player
 
@@ -62,8 +64,9 @@ def draw_ghosts(screen: pygame.Surface, positions: list[tuple[int, int]]) -> Non
 
 
 def draw_player(screen: pygame.Surface, world_position: tuple[float, float]) -> None:
-    # Partner's getter returns (col, row) as floats.
+    # The refactored Player class now returns (x, y) natively (col, row)
     tile_x, tile_y = world_position
+    
     cx = int(tile_x * CELL_SIZE) + (CELL_SIZE // 2)
     cy = int(tile_y * CELL_SIZE) + (CELL_SIZE // 2)
     
@@ -71,6 +74,7 @@ def draw_player(screen: pygame.Surface, world_position: tuple[float, float]) -> 
 
 
 def main() -> None:
+    # 1. Load Config & Maze
     config_path = sys.argv[1] if len(sys.argv) > 1 else "config_file.json"
     loader = ConfigLoader(config_path)
     config = loader.load()
@@ -80,23 +84,25 @@ def main() -> None:
     arr = maze_gen.generate(seed=config.seed)
 
     populate = Populate(arr, level_cfg.width, level_cfg.height)
-    start_row, start_col = populate.find_player_spawn()
     
+    # 2. Init Pygame Display
     pygame.init()
     window_size = (level_cfg.width * CELL_SIZE, level_cfg.height * CELL_SIZE)
     screen = pygame.display.set_mode(window_size)
-    pygame.display.set_caption("Player Movement Engine Test")
+    pygame.display.set_caption("Pac-Man Engine - Refactored Player Test")
     clock = pygame.time.Clock()
 
-    # 1. Instantiate the Movement system required by update()
+    # 3. Instantiate Engine Systems
     movement_sys = Movement()
+    
+    # Initialize the Player with the single position tuple requested by __init__
+    player_spawn_tuple = populate.find_player_spawn()
+    player = Player(position=player_spawn_tuple, speed=5.0)
 
-    # 2. Pass coordinates as a single tuple to match your partner's __init__
-    player = Player(position=(start_row, start_col), speed=1.0)
-
+    # 4. Game Loop
     running = True
     while running:
-        # Calculate Delta Time (dt) in seconds
+        # Calculate Delta Time (dt) in seconds for smooth movement
         dt = clock.tick(60) / 1000.0
 
         # FRONT-END: Capture Inputs
@@ -107,7 +113,7 @@ def main() -> None:
                 if event.key == pygame.K_ESCAPE:
                     running = False
                 
-                # Check for either the Arrow Key or the WASD Key
+                # Check for either the Arrow Keys or WASD Keys
                 elif event.key in (pygame.K_UP, pygame.K_w):
                     player.set_direction(Direction.NORTH)
                 elif event.key in (pygame.K_DOWN, pygame.K_s):
@@ -118,10 +124,10 @@ def main() -> None:
                     player.set_direction(Direction.EAST)
 
         # BACK-END: Update Engine Logic
-        # Pass dt and the movement object into the update method
-        player.update(dt, movement_sys, arr)
+        # Advance the physics; we can ignore the returned `arrived` list for this movement test
+        _ = player.update(dt, movement_sys, arr)
 
-        # FRONT-END: Render
+        # FRONT-END: Render Frame
         screen.fill(COLOR_BG)
         
         draw_raw_maze(screen, arr)
@@ -129,7 +135,7 @@ def main() -> None:
         draw_super_pacgums(screen, populate.find_superpacgum_spawn())
         draw_ghosts(screen, populate.find_ghosts_spawn())
         
-        # Call the exact getter method name
+        # Request exact floating-point (x, y) coordinates from the engine
         draw_player(screen, player.get_world_position())
 
         pygame.display.flip()
