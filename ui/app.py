@@ -7,6 +7,7 @@
 import pygame
 from ui.mazedrawer import MazeDrawer 
 from ui.title import TitleDrawer
+from ui.scene import SceneManger
 
 class AppRender:
 
@@ -18,7 +19,7 @@ class AppRender:
         pygame.init()
         self.screen = pygame.display.set_mode(flags=pygame.FULLSCREEN)
         
-        
+        self.clock = pygame.time.Clock = pygame.time.Clock()
         # get screen height and width
         self.screen_w = self.screen.get_width()
         self.screen_h = self.screen.get_height()
@@ -53,3 +54,19 @@ class AppRender:
         pygame.quit()
 
 
+# class App:
+#     """ Render screen """
+
+#     def __init__(self):
+#         """ Initialization for pygame """
+#         pygame.init()
+#         self.screen = pygame.display.set_mode(pygame.FULLSCREEN)
+#         self.time = pygame.time.Clock()
+#         self.manager = 
+
+#     def run(self):
+#         ...
+
+# class App:
+#     def __init__(self):
+        
