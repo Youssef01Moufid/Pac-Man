@@ -4,11 +4,15 @@ The goal from this class is to draw the maze into pygame surface
 
 import pygame
 from maze.mazegen import MazeGen
+from model.player import Player
+
+
+
 
 
 class MazeDrawer:
     
-    def __init__(self, screen: pygame.Surface, maze: MazeGen, seed: int):
+    def __init__(self, screen: pygame.Surface, maze: list[list[int]], seed: int):
         """
             Initialize the MazeDrawer
         """
@@ -18,7 +22,7 @@ class MazeDrawer:
         self.sc_w = self.screen.get_width()
         self.sc_h = self.screen.get_height()
 
-        self.grid = maze.generate(seed)
+        self.grid = maze
 
         # getting the rectangle holder for the grid
         self.rect_w = self.sc_w  - (self.sc_w // 5)
@@ -72,8 +76,7 @@ class MazeDrawer:
 
                 if cell & N:
                     self.draw_wall((x, y), (x + cell_size, y), 5)
-
-
+                
                 if cell & E:
                     self.draw_wall((x + cell_size, y), (x + cell_size, y + cell_size), 5)
                 
