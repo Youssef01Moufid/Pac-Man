@@ -1,6 +1,8 @@
 import pygame
+import os
 
 
+FONT_URL = os.path.join('assets', 'fonts', 'PressStart2P-Regular.ttf')
 
 class TitleDrawer:
     
@@ -9,18 +11,21 @@ class TitleDrawer:
             screen: pygame.Surface
         ):
         self.screen = screen
+        try:
+            self.font = pygame.font.Font(FONT_URL, 48)
+        except (OSError, FileNotFoundError):
+            self.font = pygame.font.Font(None, 48)
+        # self.title_font = pygame.font.Font(None, 48)
+        self.title_surf = self.font.render("PAC-MAN", True, "gold")
 
-        self.title_font = pygame.font.Font(None, 48)
-        self.title_surf = self.title_font.render("PAC-MAN", True, "gold")
+        # self.high_scores_fonts = pygame.font.Font(None, 48)
+        self.high_scores = self.font.render("High Score: 0000", True, "white")
 
-        self.high_scores_fonts = pygame.font.Font(None, 48)
-        self.high_scores = self.high_scores_fonts.render("High Score: 0000", True, "white")
+        # self.current_score_font = pygame.font.Font(None, 48)
+        self.current_score = self.font.render("Score: 0000", True, "white")
 
-        self.current_score_font = pygame.font.Font(None, 48)
-        self.current_score = self.current_score_font.render("Score: 0000", True, "white")
-
-        self.times_fonts = pygame.font.Font(None, 48)
-        self.times_surf = self.times_fonts.render('Times: 120', True, "white")
+        # self.times_fonts = pygame.font.Font(None, 48)
+        self.times_surf = self.font.render('Times: 120', True, "white")
 
         self.lives = 3
 
@@ -37,8 +42,8 @@ class TitleDrawer:
         """"""
         x = self.screen.get_width() - self.high_scores.get_width() - 50
         y = 40
-        x_s = self.screen.get_width() - 220
-        y_s = self.screen.get_height() - 60
+        x_s = self.screen.get_width() - 580
+        y_s = self.screen.get_height() - 80
         self.screen.blit(self.high_scores, (x,y))
         self.screen.blit(self.current_score, (x_s, y_s))
     
@@ -61,7 +66,7 @@ class TitleDrawer:
         pygame.draw.rect(self.screen, 'blue', inner, 2, border_radius=24)
 
 
-    def draw(self):
+    def draw(self) -> None:
         self.draw_title()
         self.draw_scores()
         self.draw_lives()

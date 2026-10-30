@@ -68,11 +68,16 @@ class AppRender:
 
 
 
-    def draw_pacgums(self, positions: list[tuple[int, int]], cell_size: int) -> None:
-        for row, col in positions:
-            cx = col * cell_size + cell_size // 2
-            cy = row * cell_size + cell_size // 2
-            pygame.draw.circle(self.screen, (255, 184, 174), (cx, cy), int(cell_size * 0.4))
+
+        
+    def draw_pacgums(self, positions: list[tuple[int, int]], cell_size: int, maze_position: tuple[int, int]) -> None:
+        maze_x, maze_y = maze_position
+        for col, row in positions:
+            cx = maze_x + col * cell_size + cell_size // 2
+            cy = maze_y + col * cell_size + cell_size // 2
+            pygame.draw.circle(self.screen, 'white', (cx, cy), int(cell_size * 0.1))
+    
+
         
     def handle_event(self, event: pygame.event.Event, player: Player) -> None:
         if event.key in (pygame.K_UP, pygame.K_w):
@@ -84,7 +89,13 @@ class AppRender:
         if event.key in (pygame.K_RIGHT, pygame.K_d):
             player.set_direction(Direction.EAST)
     
-    def screen_render(self, mazedrawer: MazeDrawer, title: TitleDrawer, player: Player):
+    def screen_render(
+        self,
+        mazedrawer: MazeDrawer,
+        title: TitleDrawer,
+        player: Player,
+        pacgum_postion: list[tuple[int, int]]
+        ):
         """
             Instance method to draw the surface screen.
         """
@@ -112,7 +123,7 @@ class AppRender:
                     else:
                         self.handle_event(event, player)
             if i == 0:
-                direction =5
+                direction = 5
             if i == 20:
                 direction = -5
 
@@ -120,10 +131,9 @@ class AppRender:
             self.screen.fill("black")
             title.draw()
             mazedrawer.draw_maze()
+            self.draw_pacgums(pacgum_postion.find_pacgum_spawn(), cell_size, maze_size)
             player.update(dt, mouv_sys, mazedrawer.grid)
             self.draw_player(player, cell_size, maze_size, i)
             pygame.display.flip()
 
         pygame.quit()
-
-
