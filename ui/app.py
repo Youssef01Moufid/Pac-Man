@@ -112,9 +112,9 @@ class AppRender:
                     else:
                         self.handle_event(event, player)
             if i == 0:
-                direction = 1
-            if i == 10:
-                direction = -1
+                direction =5
+            if i == 20:
+                direction = -5
 
             i += direction 
             self.screen.fill("black")
