@@ -29,7 +29,7 @@ class Player:
     def __init__(
         self,
         position: tuple[int, int],
-        speed: float = 5.0,
+        speed: float = 3.0,
     ) -> None:
         """Place the player on a cell; speed is in cells per second."""
         self.position = position

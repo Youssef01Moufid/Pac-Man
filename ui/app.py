@@ -26,14 +26,53 @@ class AppRender:
 
     
 
-    def draw_player(self, player: Player, cell_size: int, maze_pose: tuple[int, int]) -> None:
+    def draw_player(self, player: Player, cell_size: int, maze_pose: tuple[int, int], i: int) -> None:
         x, y = player.get_world_position()
         maze_x, maze_y = maze_pose
         cx =  maze_x  + int(x * cell_size) + cell_size // 2
         cy =  maze_y  + int(y * cell_size) + cell_size // 2
         
-        pygame.draw.circle(self.screen, "gold", (cx, cy), cell_size * 0.3)
 
+        pygame.draw.circle(self.screen, "gold", (cx, cy), cell_size * 0.3)
+        radius = int(cell_size * 0.3)
+        if player.direction == Direction.NORTH:
+            pygame.draw.polygon(
+                self.screen,
+                "black", [(cx, cy),
+                          (cx + i, cy - radius),
+                          (cx - i, cy - radius)
+                        ])
+        elif player.direction == Direction.SOUTH:
+            pygame.draw.polygon(
+                self.screen,
+                "black", [(cx, cy),
+                          (cx + i, cy + radius),
+                          (cx - i, cy + radius)
+                        ])
+        
+        elif player.direction == Direction.EAST:
+            pygame.draw.polygon(
+                self.screen,
+                "black", [(cx, cy),
+                          (cx + radius, cy - i),
+                          (cx + radius, cy + i)
+                        ])
+        
+        elif player.direction == Direction.WEST:
+            pygame.draw.polygon(
+                self.screen,
+                "black", [(cx, cy),
+                          (cx - radius, cy - i),
+                          (cx - radius, cy + i)
+                        ])
+
+
+
+    def draw_pacgums(self, positions: list[tuple[int, int]], cell_size: int) -> None:
+        for row, col in positions:
+            cx = col * cell_size + cell_size // 2
+            cy = row * cell_size + cell_size // 2
+            pygame.draw.circle(self.screen, (255, 184, 174), (cx, cy), int(cell_size * 0.4))
         
     def handle_event(self, event: pygame.event.Event, player: Player) -> None:
         if event.key in (pygame.K_UP, pygame.K_w):
@@ -55,6 +94,7 @@ class AppRender:
         mouv_sys = Movement()
         cell_size = mazedrawer.get_cell_size()  
         maze_size = mazedrawer.get_start_position(cell_size)
+        i = 0
         while run:
             dt = self.clock.tick(60) / 1000.0
             
@@ -71,12 +111,17 @@ class AppRender:
                         run = False
                     else:
                         self.handle_event(event, player)
-            
+            if i == 0:
+                direction = 1
+            if i == 10:
+                direction = -1
+
+            i += direction 
             self.screen.fill("black")
             title.draw()
             mazedrawer.draw_maze()
             player.update(dt, mouv_sys, mazedrawer.grid)
-            self.draw_player(player, cell_size, maze_size)
+            self.draw_player(player, cell_size, maze_size, i)
             pygame.display.flip()
 
         pygame.quit()
