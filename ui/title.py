@@ -62,8 +62,8 @@ class TitleDrawer:
 
         outer = pygame.Rect(12, 12, w - 24, h - 24)
         inner = outer.inflate(-12, -12)
-        pygame.draw.rect(self.screen, 'blue', outer, 3, border_radius=24)
-        pygame.draw.rect(self.screen, 'blue', inner, 2, border_radius=24)
+        pygame.draw.rect(self.screen, 'blue', outer, 3, border_radius=14)
+        pygame.draw.rect(self.screen, 'blue', inner, 2, border_radius=8)
 
 
     def draw(self) -> None:
