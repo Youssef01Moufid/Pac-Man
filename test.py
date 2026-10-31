@@ -21,7 +21,7 @@ if __name__ == "__main__":
     arr = maze_gen.generate(seed=config.seed)
     
     render = AppRender()
-    populate = Populate(arr, level_cfg.width, height=level_cfg.height)
+    populate = Populate(arr, width=level_cfg.width, height=level_cfg.height)
     
     spawn = populate.find_player_spawn()
     player = Player(position=spawn)
@@ -30,4 +30,4 @@ if __name__ == "__main__":
     
     mazerender = MazeDrawer(render.screen, arr, 42) 
     
-    render.screen_render(mazerender, title, player, populate)
+    render.screen_render(mazerender, title, player, populate.find_pacgum_spawn())

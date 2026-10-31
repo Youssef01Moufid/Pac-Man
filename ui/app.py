@@ -20,7 +20,7 @@ class AppRender:
         self.screen = pygame.display.set_mode(flags=pygame.FULLSCREEN)
         self.clock = pygame.time.Clock()
         self.clock = pygame.time.Clock = pygame.time.Clock()
-        # get screen height and width
+
         self.screen_w = self.screen.get_width()
         self.screen_h = self.screen.get_height()
 
@@ -73,10 +73,20 @@ class AppRender:
     def draw_pacgums(self, positions: list[tuple[int, int]], cell_size: int, maze_position: tuple[int, int]) -> None:
         maze_x, maze_y = maze_position
         for col, row in positions:
-            cx = maze_x + col * cell_size + cell_size // 2
+            cx = maze_x + row * cell_size + cell_size // 2
             cy = maze_y + col * cell_size + cell_size // 2
-            pygame.draw.circle(self.screen, 'white', (cx, cy), int(cell_size * 0.1))
-    
+            pygame.draw.circle(self.screen, 'RosyBrown1', (cx, cy), int(cell_size * 0.1))
+
+
+    def update_position(self, player: Player, pacgum_positions: list[tuple[int, int]])  -> list[tuple[int, int]]:
+
+        try:
+            index = pacgum_positions.index(player.position)
+            pacgum_positions.pop(index)
+        except ValueError:
+            pass    
+        return pacgum_positions
+
 
         
     def handle_event(self, event: pygame.event.Event, player: Player) -> None:
@@ -129,11 +139,11 @@ class AppRender:
 
             i += direction 
             self.screen.fill("black")
+            player.update(dt, mouv_sys, mazedrawer.grid)
+            pacgum_postion = self.update_position(player, pacgum_postion)
             title.draw()
             mazedrawer.draw_maze()
-            self.draw_pacgums(pacgum_postion.find_pacgum_spawn(), cell_size, maze_size)
-            player.update(dt, mouv_sys, mazedrawer.grid)
+            self.draw_pacgums(pacgum_postion, cell_size, maze_size)
             self.draw_player(player, cell_size, maze_size, i)
             pygame.display.flip()
-
         pygame.quit()
