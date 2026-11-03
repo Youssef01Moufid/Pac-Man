@@ -1,4 +1,4 @@
-"""Main entry point to test maze generation, entity spawns, and Player movement."""
+"""Main entry point to test maze generation, entity spawns, and Player/Ghost movement."""
 
 import sys
 import pygame
@@ -10,6 +10,7 @@ from maze.populate import Populate
 # Adjust these imports if your folder structure differs
 from model.movement import Direction, Movement
 from model.player import Player
+from model.ghosts import Ghost  # NEW: Import the Ghost class
 
 # Visual settings
 CELL_SIZE = 40
@@ -56,10 +57,12 @@ def draw_super_pacgums(screen: pygame.Surface, positions: list[tuple[int, int]])
         pygame.draw.circle(screen, COLOR_SUPER, (cx, cy), int(CELL_SIZE * 0.25))
 
 
-def draw_ghosts(screen: pygame.Surface, positions: list[tuple[int, int]]) -> None:
-    for row, col in positions:
-        cx = col * CELL_SIZE + CELL_SIZE // 2
-        cy = row * CELL_SIZE + CELL_SIZE // 2
+def draw_ghosts(screen: pygame.Surface, active_ghosts: list[Ghost]) -> None:
+    # UPDATED: Now takes Ghost objects so they glide smoothly
+    for ghost in active_ghosts:
+        tile_x, tile_y = ghost.get_world_position()
+        cx = int(tile_x * CELL_SIZE) + (CELL_SIZE // 2)
+        cy = int(tile_y * CELL_SIZE) + (CELL_SIZE // 2)
         pygame.draw.circle(screen, COLOR_GHOST, (cx, cy), int(CELL_SIZE * 0.35))
 
 
@@ -89,15 +92,21 @@ def main() -> None:
     pygame.init()
     window_size = (level_cfg.width * CELL_SIZE, level_cfg.height * CELL_SIZE)
     screen = pygame.display.set_mode(window_size)
-    pygame.display.set_caption("Pac-Man Engine - Refactored Player Test")
+    pygame.display.set_caption("Pac-Man Engine - Player and Ghost OOP Test")
     clock = pygame.time.Clock()
 
     # 3. Instantiate Engine Systems
     movement_sys = Movement()
     
-    # Initialize the Player with the single position tuple requested by __init__
+    # Initialize the Player
     player_spawn_tuple = populate.find_player_spawn()
     player = Player(position=player_spawn_tuple, speed=5.0)
+
+    # Initialize the Ghosts (slightly slower than player)
+    ghost_spawns = populate.find_ghosts_spawn()
+    active_ghosts = []
+    for spawn in ghost_spawns:
+        active_ghosts.append(Ghost(position=spawn, speed=4.5))
 
     # 4. Game Loop
     running = True
@@ -124,8 +133,12 @@ def main() -> None:
                     player.set_direction(Direction.EAST)
 
         # BACK-END: Update Engine Logic
-        # Advance the physics; we can ignore the returned `arrived` list for this movement test
+        # Update Player
         _ = player.update(dt, movement_sys, arr)
+
+        # Update Ghosts, passing the player's position as the target!
+        for ghost in active_ghosts:
+            _ = ghost.update(dt, movement_sys, arr, player.position)
 
         # FRONT-END: Render Frame
         screen.fill(COLOR_BG)
@@ -133,10 +146,10 @@ def main() -> None:
         draw_raw_maze(screen, arr)
         draw_pacgums(screen, populate.find_pacgum_spawn())
         draw_super_pacgums(screen, populate.find_superpacgum_spawn())
-        draw_ghosts(screen, populate.find_ghosts_spawn())
         
-        # Request exact floating-point (x, y) coordinates from the engine
+        # Draw dynamic entities
         draw_player(screen, player.get_world_position())
+        draw_ghosts(screen, active_ghosts)  # Passes the list of Ghost objects
 
         pygame.display.flip()
 
