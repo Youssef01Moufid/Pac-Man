@@ -13,8 +13,8 @@ _OPPOSITE: dict[Direction, Direction] = {
 class Player(Entity):
     """The Pac-Man character controlled by the user."""
 
-    def __init__(self, position: tuple[int, int], speed: float = 3.0) -> None:
-        super().__init__(position, speed)
+    def __init__(self, row: int, col: int, speed: float = 3.0) -> None:
+        super().__init__(row, col, speed)
         
         self.desired_direction: Direction | None = None
 
@@ -39,16 +39,15 @@ class Player(Entity):
         maze: list[list[int]],
     ) -> None:
         """At a cell center: take the asked turn, else go on, else stop."""
-        row, col = self.position
         desired = self.desired_direction
 
         if desired is not None and movement.can_move(
-            row, col, maze, desired
+            self.row, self.col, maze, desired
         ) is not None:
             self.direction = desired
             self.desired_direction = None
         elif self.direction is not None and movement.can_move(
-            row, col, maze, self.direction
+            self.row, self.col, maze, self.direction
         ) is None:
             self._stop()
 
@@ -64,12 +63,12 @@ class Player(Entity):
             return
 
         target = movement.can_move(
-            self.position[0], self.position[1], maze, self.direction
+            self.row, self.col, maze, self.direction
         )
         if target is None:
             return
 
-        self.position = target
+        self.row, self.col = target
         self.direction = self.desired_direction
         self.desired_direction = None
         self.progress = 1.0 - self.progress

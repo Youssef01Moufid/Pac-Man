@@ -15,19 +15,23 @@ class Entity:
 
     def __init__(
         self,
-        position: tuple[int, int],
+        row: int,
+        col: int,
         speed: float,
     ) -> None:
         """Initialize the entity and remember its spawn point for resets."""
-        self.position = position
-        self.spawn_position = position
+        self.row = row
+        self.col = col
+        self.spawn_row = row
+        self.spawn_col = col
         self.direction: Direction | None = None
         self.speed = speed
         self.progress = 0.0
 
     def reset(self) -> None:
         """Instantly teleport back to the spawn position and stop."""
-        self.position = self.spawn_position
+        self.row = self.spawn_row
+        self.col = self.spawn_col
         self.direction = None
         self.progress = 0.0
 
@@ -49,13 +53,13 @@ class Entity:
 
         while self.direction is not None and self.progress >= 1.0:
             target = movement.can_move(
-                self.position[0], self.position[1], maze, self.direction
+                self.row, self.col, maze, self.direction
             )
             if target is None:
                 self._stop()
                 break
             
-            self.position = target
+            self.row, self.col = target
             self.progress -= 1.0
             arrived.append(target)
             
@@ -78,13 +82,11 @@ class Entity:
 
     def get_world_position(self) -> tuple[float, float]:
         """Return the exact (x, y) position: x is the column, y the row."""
-        row, col = self.position
-
         if self.direction is None:
-            return float(col), float(row)
+            return float(self.col), float(self.row)
 
         d_col, d_row = _SCREEN_STEP[self.direction]
         return (
-            col + d_col * self.progress,
-            row + d_row * self.progress,
+            self.col + d_col * self.progress,
+            self.row + d_row * self.progress,
         )
