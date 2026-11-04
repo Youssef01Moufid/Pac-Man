@@ -1,4 +1,4 @@
-"""Main entry point to test maze generation, entity spawns, and Player/Ghost movement."""
+"""Main entry point to test maze generation, entity spawns, and Player movement only."""
 
 import sys
 import pygame
@@ -7,17 +7,14 @@ from config.loader import ConfigLoader
 from maze.mazegen import MazeGen
 from maze.populate import Populate
 
-# Adjust these imports if your folder structure differs
 from model.movement import Direction, Movement
 from model.player import Player
-from model.ghosts import Ghost  # NEW: Import the Ghost class
 
 # Visual settings
 CELL_SIZE = 40
 COLOR_BG = (0, 0, 0)
 COLOR_WALL = (36, 36, 255)
 COLOR_PLAYER = (255, 255, 0)
-COLOR_GHOST = (255, 0, 0)
 COLOR_PACGUM = (255, 184, 174)
 COLOR_SUPER = (255, 255, 255)
 WALL_THICKNESS = 4
@@ -33,13 +30,13 @@ def draw_raw_maze(screen: pygame.Surface, arr: list[list[int]]) -> None:
             x = col * CELL_SIZE
             y = row * CELL_SIZE
 
-            if val & 1:  # North
+            if val & 1:
                 pygame.draw.line(screen, COLOR_WALL, (x, y), (x + CELL_SIZE, y), WALL_THICKNESS)
-            if val & 2:  # East
+            if val & 2:
                 pygame.draw.line(screen, COLOR_WALL, (x + CELL_SIZE, y), (x + CELL_SIZE, y + CELL_SIZE), WALL_THICKNESS)
-            if val & 4:  # South
+            if val & 4:
                 pygame.draw.line(screen, COLOR_WALL, (x, y + CELL_SIZE), (x + CELL_SIZE, y + CELL_SIZE), WALL_THICKNESS)
-            if val & 8:  # West
+            if val & 8:
                 pygame.draw.line(screen, COLOR_WALL, (x, y), (x, y + CELL_SIZE), WALL_THICKNESS)
 
 
@@ -57,104 +54,101 @@ def draw_super_pacgums(screen: pygame.Surface, positions: list[tuple[int, int]])
         pygame.draw.circle(screen, COLOR_SUPER, (cx, cy), int(CELL_SIZE * 0.25))
 
 
-def draw_ghosts(screen: pygame.Surface, active_ghosts: list[Ghost]) -> None:
-    # UPDATED: Now takes Ghost objects so they glide smoothly
-    for ghost in active_ghosts:
-        tile_x, tile_y = ghost.get_world_position()
-        cx = int(tile_x * CELL_SIZE) + (CELL_SIZE // 2)
-        cy = int(tile_y * CELL_SIZE) + (CELL_SIZE // 2)
-        pygame.draw.circle(screen, COLOR_GHOST, (cx, cy), int(CELL_SIZE * 0.35))
-
-
 def draw_player(screen: pygame.Surface, world_position: tuple[float, float]) -> None:
-    # The refactored Player class now returns (x, y) natively (col, row)
+    # Player returns (x, y), meaning (col, row).
     tile_x, tile_y = world_position
-    
-    cx = int(tile_x * CELL_SIZE) + (CELL_SIZE // 2)
-    cy = int(tile_y * CELL_SIZE) + (CELL_SIZE // 2)
-    
+
+    cx = int(tile_x * CELL_SIZE) + CELL_SIZE // 2
+    cy = int(tile_y * CELL_SIZE) + CELL_SIZE // 2
+
     pygame.draw.circle(screen, COLOR_PLAYER, (cx, cy), int(CELL_SIZE * 0.4))
 
 
 def main() -> None:
-    # 1. Load Config & Maze
+    # 1. Load Config and Generate Maze
     config_path = sys.argv[1] if len(sys.argv) > 1 else "config_file.json"
     loader = ConfigLoader(config_path)
     config = loader.load()
 
     level_cfg = config.levels[0]
+
     maze_gen = MazeGen(width=level_cfg.width, height=level_cfg.height)
     arr = maze_gen.generate(seed=config.seed)
 
-    populate = Populate(arr, level_cfg.width, level_cfg.height)
-    
-    # 2. Init Pygame Display
+    # 2. Populate the Maze
+    populate = Populate(
+        arr,
+        level_cfg.width,
+        level_cfg.height,
+        level_cfg.pacgum,
+    )
+
+    # Generate spawn positions ONCE.
+    player_spawn = populate.find_player_spawn()
+    pacgum_positions = populate.find_pacgum_spawn()
+    super_pacgum_positions = populate.find_superpacgum_spawn()
+
+    # 3. Initialize Pygame
     pygame.init()
-    window_size = (level_cfg.width * CELL_SIZE, level_cfg.height * CELL_SIZE)
+
+    window_size = (
+        level_cfg.width * CELL_SIZE,
+        level_cfg.height * CELL_SIZE,
+    )
+
     screen = pygame.display.set_mode(window_size)
-    pygame.display.set_caption("Pac-Man Engine - Player and Ghost OOP Test")
+    pygame.display.set_caption("Pac-Man Engine - Player Only Test")
     clock = pygame.time.Clock()
 
-    # 3. Instantiate Engine Systems
+    # 4. Initialize Engine Systems
     movement_sys = Movement()
-    
-    # Initialize the Player
-    player_spawn_tuple = populate.find_player_spawn()
-    player = Player(position=player_spawn_tuple, speed=5.0)
 
-    # Initialize the Ghosts (slightly slower than player)
-    ghost_spawns = populate.find_ghosts_spawn()
-    active_ghosts = []
-    for spawn in ghost_spawns:
-        active_ghosts.append(Ghost(position=spawn, speed=4.5))
+    spawn_row, spawn_col = player_spawn
+    player = Player(row=spawn_row, col=spawn_col, speed=5.0)
 
-    # 4. Game Loop
+    # 5. Game Loop
     running = True
+
     while running:
-        # Calculate Delta Time (dt) in seconds for smooth movement
         dt = clock.tick(60) / 1000.0
 
-        # FRONT-END: Capture Inputs
+        # Capture Inputs
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     running = False
-                
-                # Check for either the Arrow Keys or WASD Keys
+
                 elif event.key in (pygame.K_UP, pygame.K_w):
                     player.set_direction(Direction.NORTH)
+
                 elif event.key in (pygame.K_DOWN, pygame.K_s):
                     player.set_direction(Direction.SOUTH)
+
                 elif event.key in (pygame.K_LEFT, pygame.K_a):
                     player.set_direction(Direction.WEST)
+
                 elif event.key in (pygame.K_RIGHT, pygame.K_d):
                     player.set_direction(Direction.EAST)
 
-        # BACK-END: Update Engine Logic
-        # Update Player
+        # Update Player Movement
         _ = player.update(dt, movement_sys, arr)
 
-        # Update Ghosts, passing the player's position as the target!
-        for ghost in active_ghosts:
-            _ = ghost.update(dt, movement_sys, arr, player.position)
-
-        # FRONT-END: Render Frame
+        # Render Frame
         screen.fill(COLOR_BG)
-        
+
         draw_raw_maze(screen, arr)
-        draw_pacgums(screen, populate.find_pacgum_spawn())
-        draw_super_pacgums(screen, populate.find_superpacgum_spawn())
-        
-        # Draw dynamic entities
+        draw_pacgums(screen, pacgum_positions)
+        draw_super_pacgums(screen, super_pacgum_positions)
         draw_player(screen, player.get_world_position())
-        draw_ghosts(screen, active_ghosts)  # Passes the list of Ghost objects
 
         pygame.display.flip()
 
     pygame.quit()
     sys.exit()
+
 
 if __name__ == "__main__":
     main()

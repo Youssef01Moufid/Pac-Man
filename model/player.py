@@ -10,12 +10,13 @@ _OPPOSITE: dict[Direction, Direction] = {
     Direction.WEST: Direction.EAST,
 }
 
+
 class Player(Entity):
     """The Pac-Man character controlled by the user."""
 
     def __init__(self, row: int, col: int, speed: float = 3.0) -> None:
         super().__init__(row, col, speed)
-        
+
         self.desired_direction: Direction | None = None
 
     def set_direction(self, direction: Direction) -> None:
@@ -30,7 +31,7 @@ class Player(Entity):
     ) -> list[tuple[int, int]]:
         """Check for instant U-turns, then let the parent Entity handle movement."""
         self._turn_back_if_asked(movement, maze)
-        
+
         return super().update(dt, movement, maze)
 
     def _choose_direction(

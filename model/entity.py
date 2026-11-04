@@ -58,11 +58,11 @@ class Entity:
             if target is None:
                 self._stop()
                 break
-            
+
             self.row, self.col = target
             self.progress -= 1.0
             arrived.append(target)
-            
+
             self._choose_direction(movement, maze)
 
         return arrived

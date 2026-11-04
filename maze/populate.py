@@ -1,16 +1,20 @@
+import random
+
+
 class Populate:
 
-    def __init__(self, maze: list[list[int]], width: int, height: int) -> None:
+    def __init__(self, maze: list[list[int]], width: int, height: int, pacgum_count: int) -> None:
         self.width = width
         self.height = height
         self.maze = maze
+        self.pacgum_count = pacgum_count
 
     def _get_OpenCells(self) -> list[tuple[int, int]]:
 
         open_cells: list[tuple[int, int]] = []
 
         for i, row in enumerate(self.maze):
-            for j, raw in enumerate(self.maze[0]):
+            for j, raw in enumerate(row):
                 if self.maze[i][j] != 15:
                     open_cells.append((i, j))
 
@@ -47,7 +51,22 @@ class Populate:
         return ghostsDim
 
     def find_pacgum_spawn(self) -> list[tuple[int, int]]:
-        return self._get_OpenCells()
+
+        available_cells = self._get_OpenCells()
+
+        reserved_cells = {
+            self.find_player_spawn(),
+            *self.find_ghosts_spawn()
+        }
+
+        available_cells = [
+            cell for cell in available_cells
+            if cell not in reserved_cells
+        ]
+
+        count = min(self.pacgum_count, len(available_cells))
+
+        return random.sample(available_cells, count)
 
     def find_superpacgum_spawn(self) -> list[tuple[int, int]]:
         return self.find_ghosts_spawn()

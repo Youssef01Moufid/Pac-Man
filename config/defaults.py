@@ -144,12 +144,11 @@ class DefaultsSchema:
     """Encapsulates the defaults table and the dict-sanitization process."""
 
     def __init__(self) -> None:
-        default_levels = [LevelConfig(_DEFAULT_LEVEL_DIM, _DEFAULT_LEVEL_DIM) for _ in range(10)]
+        default_levels = [LevelConfig(_DEFAULT_LEVEL_DIM, _DEFAULT_LEVEL_DIM, 42) for _ in range(10)]
 
         self._table: dict[str, FieldSpec] = {
             "highscore_filename": FieldSpec("highscores.json", str, StringValidator()),
             "lives": FieldSpec(3, int, IntRangeValidator(1, 9)),
-            "pacgum": FieldSpec(42, int, IntRangeValidator(min_val=1)),
             "levels": FieldSpec(
                 default_levels,
                 list,
