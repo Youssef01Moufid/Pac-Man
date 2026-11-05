@@ -147,3 +147,54 @@ class AppRender:
             self.draw_player(player, cell_size, maze_size, i)
             pygame.display.flip()
         pygame.quit()
+
+
+
+from ui.scene_manager import SceneManager
+from ui.scenes.mainmenu_scene import MainMenuScene
+
+
+class App:
+
+    def __init__(self) -> None:
+        """"""
+        pygame.init()
+        self.manager = SceneManager()
+        self.surface = pygame.display.set_mode(flags=pygame.FULLSCREEN)
+        self.clock = pygame.time.Clock()
+        self.make_menu()
+
+    def make_menu(self) -> None:
+        """"""
+        w, h = self.surface.get_size()
+        self.manager.push(MainMenuScene(self.manager, w, h))
+
+
+    def run(self) -> None:
+        """"""
+        try:
+            while self.manager.running:
+                # why we devide 1000.0 and what tick does ?
+                dt = self.clock.tick(60) / 1000.0
+
+                for event in pygame.event.get():
+                
+                    if event.type == pygame.QUIT:
+                        self.manager.quit()
+                        break
+
+                    top = self.manager.top()
+                    if top:
+                        top.handle_events(event)
+                
+                top = self.manager.top()
+                if top is None:
+                    self.manager.quit()
+                else:
+                    top.update(dt)
+                    self.manager.draw(self.surface)
+                pygame.display.flip()
+
+
+        finally:
+            pygame.quit()

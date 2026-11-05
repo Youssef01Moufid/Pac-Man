@@ -1,57 +1,28 @@
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
+
+import pygame
+
+if TYPE_CHECKING:
+    from ui.scene_manager import SceneManager
 
 
 class Scene(ABC):
-
-    def __init__(self, manager: SceneManger):
+    """"""
+    def __init__(self, manager: SceneManager):
         self.manager = manager
-        
+    
 
     @abstractmethod
-    def handle_event(self):
+    def handle_events(self, event: pygame.event.Event) -> None:
         """"""
-    
+ 
     @abstractmethod
-    def update(self):
+    def update(self, dt: float) -> None:
         """"""
-    
+
     @abstractmethod
-    def draw(self):
+    def draw(self, surface: pygame.Surface) -> None:
         """"""
-
-
-class SceneManger:
-    
-    def __init__(
-        self,
-        ):
-        self._stack: list[Scene] = []
-        self.running: bool = True
-
-    @property
-    def current(self):
-        return self._stack[-1] if self._stack else None
-    
-    
-    def push(self, scene: Scene):
-        
-        self._stack.append(scene)
-    
-    
-    def pop(self):
-
-        if self._stack:
-            self._stack.pop()
-        else:
-            self.running = False
-    
-    
-    def replace(self, scene: Scene):
-        if self._stack:
-            self._stack.pop()
-        self._stack.append(scene)
-
-    
-    def quit(self):
-        self.running = False
