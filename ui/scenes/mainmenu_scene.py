@@ -2,7 +2,7 @@ from ui.scene import Scene
 from ui.scene_manager import SceneManager
 from ui.widgets.button import Button
 from ui.widgets.menu import Menu
-
+from ui.scenes.game_scene import GameScene
 import os
 import pygame
 
@@ -25,7 +25,7 @@ class MainMenuScene(Scene):
         
         self.menu = Menu(
             [
-                Button("START GAME", self._start),
+                Button("START GAME ", self._start),
                 Button("INSTRUCTIONS", self._instructions),
                 Button("HIGHSCORES", self._high_scores),
                 Button("EXIT", self._quit),
@@ -40,7 +40,7 @@ class MainMenuScene(Scene):
             self.font = pygame.font.Font(None, 56)
 
     def _start(self) -> None:
-        print("START GAME")
+        self.manager.replace(GameScene(self.manager, self.width, self.height))
     
     def _instructions(self) -> None:
         print("INSTRUCTIONS")
