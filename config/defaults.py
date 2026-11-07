@@ -95,6 +95,9 @@ class LevelsValidator(BaseValidator):
         self.default_dim = default_dim
         self.dim_validator = DimensionValidator(dim_min, dim_max)
 
+        self.pacgum_validator = IntRangeValidator(min_val=0)
+        self.default_pacgum = 42
+
     def validate(self, raw_val: Any, default: Any, field_name: str) -> ValidationResult:
 
         if not isinstance(raw_val, list):
@@ -106,7 +109,7 @@ class LevelsValidator(BaseValidator):
 
         for i, item in enumerate(raw_val):
             if not isinstance(item, dict):
-                levels.append(LevelConfig(self.default_dim, self.default_dim))
+                levels.append(LevelConfig(self.default_dim, self.default_dim, self.default_pacgum))
                 warnings.append(
                     f"level[{i}] was not an object. Used default "
                     f"{self.default_dim}x{self.default_dim}."
@@ -115,14 +118,24 @@ class LevelsValidator(BaseValidator):
 
             w_res = self.dim_validator.validate(item.get("width"), self.default_dim, f"level[{i}].width")
             h_res = self.dim_validator.validate(item.get("height"), self.default_dim, f"level[{i}].height")
+
+            p_res = self.pacgum_validator.validate(
+                item.get("pacgum") if "pacgum" in item else self.default_pacgum, 
+                self.default_pacgum, 
+                f"level[{i}].pacgum"
+            )
+
             if w_res.warning:
                 warnings.append(w_res.warning)
             if h_res.warning:
                 warnings.append(h_res.warning)
-            levels.append(LevelConfig(w_res.value, h_res.value))
+            if p_res.warning:
+                warnings.append(p_res.warning)
+
+            levels.append(LevelConfig(w_res.value, h_res.value, p_res.value))
 
         while len(levels) < self.min_count:
-            levels.append(LevelConfig(self.default_dim, self.default_dim))
+            levels.append(LevelConfig(self.default_dim, self.default_dim, self.default_pacgum))
             warnings.append(
                 f"Padded missing level {len(levels)} with default "
                 f"{self.default_dim}x{self.default_dim}."
