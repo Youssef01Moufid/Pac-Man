@@ -76,6 +76,14 @@ class MainMenuScene(Scene):
         img_yellow = self.font.render('PAC-MAN', True, 'yellow')
         title.midtop = (width_scren // 2, 240)
         surface.blit(img_yellow, title)
+        try:
+            sub_font = pygame.font.Font(FONT_URL, 16)
+        except (OSError, FileNotFoundError):
+            sub_font = pygame.font.Font(None, 14)
+        sub = sub_font.render("GHOSTS!  MORE GHOSTS!", 8, (255, 184, 255))
+        heigh_screen = surface.get_height()
+        
+        surface.blit(sub, sub.get_rect(midtop=(width_scren // 2, heigh_screen // 3)))
 
 
     def draw_frames(self, surface: pygame.Surface) -> None:
