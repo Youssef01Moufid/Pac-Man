@@ -185,7 +185,7 @@ class Ghost(Entity):
         )
 
         if len(path) < 2:
-            self.direction = None
+            self._stop()
             return
 
         next_row, next_col = path[1]
@@ -195,7 +195,12 @@ class Ghost(Entity):
             next_col - self.col,
         )
 
-        self.direction = _DELTA_DIRECTION.get(delta)
+        direction = _DELTA_DIRECTION.get(delta)
+        if direction is None:
+            self._stop()
+            return
+
+        self.direction = direction
 
     def _choose_orange(self, movement: Movement, maze: list[list[int]]) -> None:
 
@@ -216,7 +221,7 @@ class Ghost(Entity):
                 valid_directions.append(direction)
 
         if not valid_directions:
-            self.direction = None
+            self._stop()
             return
 
         if self.direction is not None:
@@ -264,8 +269,59 @@ class Ghost(Entity):
         movement: Movement,
         maze: list[list[int]],
     ) -> None:
-        """Move randomly while avoiding unnecessary reversals."""
-        self._choose_random(movement, maze)
+        """Choose a direction that increases distance from Pac-Man."""
+        candidates = []
+
+        for direction in Direction:
+            neighbor = movement.can_move(
+                self.row, self.col, maze, direction
+            )
+
+            if neighbor is not None:
+                candidates.append((direction, neighbor))
+
+        if not candidates:
+            self._stop()
+            return
+
+        if self.direction is not None:
+            opposite = _OPPOSITE_DIRECTION[self.direction]
+
+            alternatives = [
+                (direction, neighbor)
+                for direction, neighbor in candidates
+                if direction != opposite
+            ]
+
+            if alternatives:
+                candidates = alternatives
+
+        best_directions = []
+        longest_distance = -1
+
+        for direction, neighbor in candidates:
+            path = self.pathfinder.find_path(
+                start=neighbor,
+                goal=(self.target_row, self.target_col),
+                maze=maze,
+            )
+
+            if not path:
+                continue
+
+            distance = len(path) - 1
+
+            if distance > longest_distance:
+                longest_distance = distance
+                best_directions = [direction]
+
+            elif distance == longest_distance:
+                best_directions.append(direction)
+
+        if best_directions:
+            self.direction = random.choice(best_directions)
+        else:
+            self._stop()
 
     def _choose_direction(
         self,
@@ -283,4 +339,4 @@ class Ghost(Entity):
             self._choose_eaten(maze)
 
         elif self.state == GhostState.RESPAWNING:
-            self.direction = None
+            self._stop()

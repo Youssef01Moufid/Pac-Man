@@ -10,7 +10,7 @@ from maze.mazegen import MazeGen
 from maze.populate import Populate
 from model.movement import Direction, Movement
 from model.player import Player
-from model.ghosts import Ghost, GhostState, GhostType
+from model.ghost import Ghost, GhostState, GhostType
 from model.pathfinder import Pathfinder
 
 
