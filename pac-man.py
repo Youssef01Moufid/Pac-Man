@@ -1,31 +1,20 @@
-"""Test Pac-Man with four ghosts, collectibles, and collisions."""
+
+"""Pygame integration test for the Pac-Man engine."""
 
 import sys
-from collections import deque
 
 import pygame
 
 from config.loader import ConfigLoader
-from maze.mazegen import MazeGen
-from maze.populate import Populate
-from model.movement import Direction, Movement
-from model.player import Player
+from game.gamestate import GameState, GameStatus
 from model.ghost import Ghost, GhostState, GhostType
-from model.pathfinder import Pathfinder
+from model.movement import Direction
 
 
 CELL_SIZE = 40
 WALL_THICKNESS = 4
-HUD_HEIGHT = 120
+HUD_HEIGHT = 155
 FPS = 60
-
-# Speeds and timers kept exactly as you requested
-PLAYER_SPEED = 5.0
-GHOST_SPEED = 4.5
-FRIGHTENED_TIME = 8.0
-RESPAWN_TIME = 3.0
-INVULNERABLE_TIME = 1.5
-COLLISION_DISTANCE = 0.55
 
 COLOR_BG = (0, 0, 0)
 COLOR_WALL = (36, 36, 255)
@@ -45,75 +34,11 @@ GHOST_COLORS = {
 }
 
 
-def get_reachable_cells(
-    maze: list[list[int]],
-    movement: Movement,
-    start: tuple[int, int],
-) -> set[tuple[int, int]]:
-    """Return cells reachable from the player's spawn."""
-    visited = {start}
-    queue = deque([start])
-
-    while queue:
-        row, col = queue.popleft()
-
-        for direction in Direction:
-            neighbor = movement.can_move(
-                row, col, maze, direction
-            )
-
-            if neighbor is None or neighbor in visited:
-                continue
-
-            visited.add(neighbor)
-            queue.append(neighbor)
-
-    return visited
-
-
-def choose_corner_positions(
-    available: set[tuple[int, int]],
-    corners: list[tuple[int, int]],
-    preferred: list[tuple[int, int]],
-) -> list[tuple[int, int]]:
-    """Select distinct reachable positions near the corners."""
-    candidates = set(available)
-    result = []
-
-    for index, corner in enumerate(corners):
-        if not candidates:
-            break
-
-        preferred_cell = (
-            preferred[index]
-            if index < len(preferred)
-            else corner
-        )
-
-        if preferred_cell in candidates:
-            selected = preferred_cell
-        else:
-            selected = min(
-                candidates,
-                key=lambda cell: (
-                    abs(cell[0] - corner[0])
-                    + abs(cell[1] - corner[1]),
-                    cell[0],
-                    cell[1],
-                ),
-            )
-
-        result.append(selected)
-        candidates.remove(selected)
-
-    return result
-
-
 def cell_center(
     row: float,
     col: float,
 ) -> tuple[int, int]:
-    """Convert maze cell coordinates into pixel coordinates."""
+    """Convert maze coordinates into pixel coordinates."""
     return (
         int((col + 0.5) * CELL_SIZE),
         int((row + 0.5) * CELL_SIZE),
@@ -124,7 +49,7 @@ def draw_raw_maze(
     screen: pygame.Surface,
     maze: list[list[int]],
 ) -> None:
-    """Draw the maze using its wall bitmasks."""
+    """Draw maze walls using the raw wall bitmasks."""
     for row, cells in enumerate(maze):
         for col, value in enumerate(cells):
             x = col * CELL_SIZE
@@ -171,13 +96,13 @@ def draw_pacgums(
     screen: pygame.Surface,
     positions: set[tuple[int, int]],
 ) -> None:
-    """Draw normal Pac-Gums."""
+    """Draw regular Pac-Gums."""
     for row, col in positions:
         pygame.draw.circle(
             screen,
             COLOR_PACGUM,
             cell_center(row, col),
-            int(CELL_SIZE * 0.1),
+            max(2, int(CELL_SIZE * 0.1)),
         )
 
 
@@ -197,17 +122,16 @@ def draw_super_pacgums(
 
 def draw_player(
     screen: pygame.Surface,
-    player: Player,
-    invulnerable_remaining: float,
+    game: GameState,
 ) -> None:
-    """Draw Pac-Man with smooth movement."""
+    """Draw Pac-Man using smooth movement coordinates."""
     if (
-        invulnerable_remaining > 0.0
-        and int(invulnerable_remaining * 8) % 2 == 0
+        game.invulnerable_remaining > 0.0
+        and int(game.invulnerable_remaining * 8) % 2 == 0
     ):
         return
 
-    x, y = player.get_world_position()
+    x, y = game.player.get_world_position()
 
     pygame.draw.circle(
         screen,
@@ -219,19 +143,21 @@ def draw_player(
 
 def draw_ghost(
     screen: pygame.Surface,
-    ghost_type: GhostType,
     ghost: Ghost,
 ) -> None:
-    """Draw a ghost according to its type and state."""
+    """Draw a ghost using its type and current state."""
     x, y = ghost.get_world_position()
     cx, cy = cell_center(y, x)
 
     if ghost.state == GhostState.NORMAL:
-        color = GHOST_COLORS[ghost_type]
+        color = GHOST_COLORS[ghost.ghost_type]
+
     elif ghost.state == GhostState.FRIGHTENED:
         color = COLOR_FRIGHTENED
+
     elif ghost.state == GhostState.EATEN:
         color = COLOR_EATEN
+
     else:
         color = COLOR_RESPAWNING
 
@@ -241,9 +167,13 @@ def draw_ghost(
     rect.center = (cx, cy)
 
     pygame.draw.rect(
-        screen, color, rect, border_radius=7
+        screen,
+        color,
+        rect,
+        border_radius=7,
     )
 
+    # Draw the ghost's eyes.
     for offset in (-6, 6):
         pygame.draw.circle(
             screen,
@@ -262,29 +192,42 @@ def draw_ghost(
 
 def draw_hud(
     screen: pygame.Surface,
+    game: GameState,
     font: pygame.font.Font,
-    ghosts: list[tuple[GhostType, Ghost]],
-    maze_height: int,
-    score: int,
-    lives: int,
-    pacgum_count: int,
-    super_count: int,
-    game_status: str | None,
 ) -> None:
-    """Display score, lives, and ghost states."""
-    top = maze_height * CELL_SIZE + 5
+    """Display game information from GameState."""
+    maze_height = len(game.level.maze)
+    top = maze_height * CELL_SIZE + 8
 
-    status = (
-        f"Score: {score}   Lives: {lives}   "
-        f"Pac-Gums: {pacgum_count}   Super: {super_count}"
-    )
+    lines = [
+        (
+            f"Level: {game.level_index + 1}/"
+            f"{len(game.config.levels)}    "
+            f"Score: {game.score}    Lives: {game.lives}"
+        ),
+        (
+            f"Time: {game.time_left:.1f}s    "
+            f"Pac-Gums: {len(game.level.pacgums)}    "
+            f"Super: {len(game.level.super_pacgums)}"
+        ),
+        f"Status: {game.status.name}",
+    ]
 
-    screen.blit(
-        font.render(status, True, COLOR_TEXT),
-        (10, top),
-    )
+    for index, line in enumerate(lines):
+        surface = font.render(
+            line,
+            True,
+            COLOR_TEXT,
+        )
+        screen.blit(
+            surface,
+            (10, top + index * 22),
+        )
 
-    for index, (ghost_type, ghost) in enumerate(ghosts):
+    # Draw four ghost states in two columns.
+    ghost_top = top + 70
+
+    for index, ghost in enumerate(game.ghosts):
         state_text = ghost.state.name
 
         if ghost.state == GhostState.FRIGHTENED:
@@ -301,437 +244,307 @@ def draw_hud(
         line = index // 2
 
         x = 10 + column * (screen.get_width() // 2)
-        y = top + 25 + line * 22
+        y = ghost_top + line * 23
 
-        label = f"{ghost_type.name}: {state_text}"
-
-        screen.blit(
-            font.render(
-                label, True, GHOST_COLORS[ghost_type]
-            ),
-            (x, y),
+        label = (
+            f"{ghost.ghost_type.name}: {state_text}"
         )
 
-    controls = "Arrows/WASD: Move  SPACE: Frighten  E: Eat  R: Reset"
-
-    screen.blit(
-        font.render(controls, True, COLOR_TEXT),
-        (10, top + 75),
-    )
-
-    # FIXED SYNTAX ERROR HERE
-    if game_status is not None:
-        message = font.render(
-            f"{game_status} - Press R to restart",
+        surface = font.render(
+            label,
             True,
-            (255, 80, 80),
+            GHOST_COLORS[ghost.ghost_type],
         )
 
-        rect = message.get_rect(
-            center=(
-                screen.get_width() // 2,
-                maze_height * CELL_SIZE // 2,
-            )
-        )
-
-        screen.blit(message, rect)
+        screen.blit(surface, (x, y))
 
 
-def ghosts_collide(
-    player: Player,
-    ghost: Ghost,
-) -> bool:
-    """Check collisions using smooth world positions."""
-    px, py = player.get_world_position()
-    gx, gy = ghost.get_world_position()
+def draw_status_message(
+    screen: pygame.Surface,
+    game: GameState,
+    font: pygame.font.Font,
+) -> None:
+    """Display paused and finished game states."""
+    messages = {
+        GameStatus.PAUSED: "PAUSED - Press P",
+        GameStatus.LEVEL_COMPLETE: "LEVEL COMPLETE - Press N",
+        GameStatus.GAME_OVER: "GAME OVER - Press R",
+        GameStatus.GAME_WON: "YOU WON! - Press R",
+    }
 
-    distance_squared = (
-        (px - gx) ** 2 + (py - gy) ** 2
+    message = messages.get(game.status)
+
+    if message is None:
+        return
+
+    maze_height = len(game.level.maze) * CELL_SIZE
+
+    overlay = pygame.Surface(
+        (screen.get_width(), maze_height),
+        pygame.SRCALPHA,
     )
 
-    return distance_squared <= COLLISION_DISTANCE ** 2
+    overlay.fill((0, 0, 0, 170))
+    screen.blit(overlay, (0, 0))
 
+    message_font = pygame.font.Font(None, 34)
 
-def main() -> None:
-    """Run the complete Pac-Man ghost test."""
-    config_path = (
-        sys.argv[1]
-        if len(sys.argv) > 1
-        else "config_file.json"
+    surface = message_font.render(
+        message,
+        True,
+        COLOR_PLAYER,
     )
 
-    # Read configuration.
-    config = ConfigLoader(config_path).load()
-    level_cfg = config.levels[0]
-
-    print(f"Configuration: {config_path}")
-    print(f"Configured lives: {config.lives}")
-    print(f"Level width: {level_cfg.width}")
-    print(f"Level height: {level_cfg.height}")
-    print(f"Pac-Gums requested: {level_cfg.pacgum}")
-
-    # Generate maze.
-    maze = MazeGen(
-        width=level_cfg.width,
-        height=level_cfg.height,
-    ).generate(seed=config.seed)
-
-    populate = Populate(
-        maze,
-        level_cfg.width,
-        level_cfg.height,
-        level_cfg.pacgum,
-    )
-
-    # Initialize movement systems.
-    movement = Movement()
-    pathfinder = Pathfinder(movement)
-
-    player_spawn = populate.find_player_spawn()
-
-    player = Player(
-        row=player_spawn[0],
-        col=player_spawn[1],
-        speed=PLAYER_SPEED,
-    )
-
-    # Find all cells reachable by Pac-Man.
-    reachable = get_reachable_cells(
-        maze, movement, player_spawn
-    )
-
-    height = len(maze)
-    width = len(maze[0])
-
-    corners = [
-        (0, 0),
-        (0, width - 1),
-        (height - 1, 0),
-        (height - 1, width - 1),
-    ]
-
-    # Choose four accessible spawn positions.
-    ghost_spawns = choose_corner_positions(
-        available=reachable - {player_spawn},
-        corners=corners,
-        preferred=populate.find_ghosts_spawn(),
-    )
-
-    if len(ghost_spawns) != 4:
-        raise ValueError(
-            "Not enough reachable cells for four ghosts."
-        )
-
-    ghost_types = [
-        GhostType.RED,
-        GhostType.PINK,
-        GhostType.CYAN,
-        GhostType.ORANGE,
-    ]
-
-    ghosts: list[tuple[GhostType, Ghost]] = []
-
-    # Create four ghosts with their individual types.
-    for ghost_type, (row, col) in zip(
-        ghost_types, ghost_spawns
-    ):
-        ghost = Ghost(
-            row=row,
-            col=col,
-            speed=GHOST_SPEED,
-            frightened_timer=FRIGHTENED_TIME,
-            respawn_timer=RESPAWN_TIME,
-            pathfinder=pathfinder,
-            ghost_type=ghost_type,
-        )
-
-        ghosts.append((ghost_type, ghost))
-
-        print(
-            f"{ghost_type.name} spawn: ({row}, {col})"
-        )
-
-    # Generate collectibles once.
-    reserved = {player_spawn, *ghost_spawns}
-
-    super_positions = set(
-        choose_corner_positions(
-            available=reachable - reserved,
-            corners=corners,
-            preferred=populate.find_superpacgum_spawn(),
+    rect = surface.get_rect(
+        center=(
+            screen.get_width() // 2,
+            maze_height // 2,
         )
     )
 
-    pacgum_positions = set(
-        populate.find_pacgum_spawn()
-    )
+    screen.blit(surface, rect)
 
-    pacgum_positions &= reachable
-    pacgum_positions -= reserved
-    pacgum_positions -= super_positions
 
-    initial_pacgums = pacgum_positions.copy()
-    initial_supers = super_positions.copy()
+def print_controls() -> None:
+    """Print test controls in the terminal."""
+    print("\n=== PAC-MAN ENGINE TEST ===")
+    print("WASD / Arrows : Move Pac-Man")
+    print("SPACE         : Frighten ghosts (debug)")
+    print("E             : Eat nearest frightened ghost (debug)")
+    print("P             : Pause / Resume")
+    print("N             : Next level after completion")
+    print("C             : Clear collectibles (debug)")
+    print("R             : Restart game")
+    print("ESC           : Quit")
+    print("===========================\n")
 
-    pygame.init()
 
-    screen = pygame.display.set_mode(
+def create_window(
+    game: GameState,
+) -> pygame.Surface:
+    """Create or resize the window for the active level."""
+    height = len(game.level.maze)
+    width = len(game.level.maze[0])
+
+    return pygame.display.set_mode(
         (
             width * CELL_SIZE,
             height * CELL_SIZE + HUD_HEIGHT,
         )
     )
 
+
+def debug_eat_ghost(game: GameState) -> None:
+    """Simulate eating the nearest frightened ghost."""
+    edible = [
+        ghost
+        for ghost in game.ghosts
+        if ghost.is_edible
+    ]
+
+    if not edible:
+        print("No frightened ghost available.")
+        return
+
+    px, py = game.player.get_world_position()
+
+    def distance_squared(ghost: Ghost) -> float:
+        gx, gy = ghost.get_world_position()
+        return (gx - px) ** 2 + (gy - py) ** 2
+
+    nearest = min(edible, key=distance_squared)
+
+    nearest.get_eaten()
+    game.score += game.config.points_per_ghost
+
+    print(
+        f"DEBUG: {nearest.ghost_type.name} eaten. "
+        f"Score: {game.score}"
+    )
+
+
+def handle_keydown(
+    event: pygame.event.Event,
+    game: GameState,
+) -> bool:
+    """Process input; return False to quit."""
+    if event.key == pygame.K_ESCAPE:
+        return False
+
+    if event.key == pygame.K_r:
+        game.restart()
+        print("Game restarted.")
+        print(f"Lives from config: {game.lives}")
+        return True
+
+    if event.key == pygame.K_p:
+        if game.status == GameStatus.PLAYING:
+            game.pause()
+            print("Game paused.")
+
+        elif game.status == GameStatus.PAUSED:
+            game.resume()
+            print("Game resumed.")
+
+        return True
+
+    if event.key == pygame.K_n:
+        if game.status == GameStatus.LEVEL_COMPLETE:
+            game.next_level()
+            print(
+                f"Started level {game.level_index + 1}"
+            )
+        return True
+
+    if game.status != GameStatus.PLAYING:
+        return True
+
+    directions = {
+        pygame.K_UP: Direction.NORTH,
+        pygame.K_w: Direction.NORTH,
+        pygame.K_RIGHT: Direction.EAST,
+        pygame.K_d: Direction.EAST,
+        pygame.K_DOWN: Direction.SOUTH,
+        pygame.K_s: Direction.SOUTH,
+        pygame.K_LEFT: Direction.WEST,
+        pygame.K_a: Direction.WEST,
+    }
+
+    direction = directions.get(event.key)
+
+    if direction is not None:
+        game.set_player_direction(direction)
+
+    elif event.key == pygame.K_SPACE:
+        for ghost in game.ghosts:
+            ghost.frightened()
+
+        print("DEBUG: Frightened mode activated.")
+
+    elif event.key == pygame.K_e:
+        debug_eat_ghost(game)
+
+    elif event.key == pygame.K_c:
+        # Debug only: force the current Level to complete.
+        game.level.pacgums.clear()
+        game.level.super_pacgums.clear()
+
+        print("DEBUG: All collectibles removed.")
+
+    return True
+
+
+def main() -> None:
+    """Run the full Pac-Man engine integration test."""
+    config_path = (
+        sys.argv[1]
+        if len(sys.argv) > 1
+        else "config_file.json"
+    )
+
+    # GameState receives the validated configuration.
+    config = ConfigLoader(config_path).load()
+    game = GameState(config)
+
+    print(f"Config file: {config_path}")
+    print(f"Configured lives: {config.lives}")
+    print(f"Actual game lives: {game.lives}")
+    print(f"Number of levels: {len(config.levels)}")
+    print(f"Level time limit: {config.level_max_time}")
+
+    print("\nGhosts:")
+    for ghost in game.ghosts:
+        print(
+            f"{ghost.ghost_type.name}: "
+            f"spawn=({ghost.spawn_row}, {ghost.spawn_col})"
+        )
+
+    pygame.init()
+
+    screen = create_window(game)
     pygame.display.set_caption(
-        "Pac-Man - Four Ghost AI Test"
+        "Pac-Man - GameState Integration Test"
     )
 
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, 22)
 
-    # Use the number of lives from the config file.
-    score = 0
-    lives = config.lives
-    game_status: str | None = None
-    invulnerable_remaining = 0.0
-
-    print("\nCONTROLS")
-    print("WASD / Arrows: Move Pac-Man")
-    print("SPACE: Make all ghosts frightened")
-    print("E: Eat nearest frightened ghost (debug)")
-    print("R: Restart game")
-    print("ESC: Quit\n")
+    print_controls()
 
     running = True
+
+    previous_level = game.level_index
+    previous_status = game.status
+    previous_lives = game.lives
+    previous_score = game.score
 
     while running:
         dt = min(clock.tick(FPS) / 1000.0, 0.05)
 
-        # Handle keyboard input.
+        # FRONTEND: Process input.
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    running = False
+                running = handle_keydown(event, game)
 
-                elif event.key == pygame.K_r:
-                    player.reset()
-
-                    for _, ghost in ghosts:
-                        ghost.reset()
-
-                    pacgum_positions = initial_pacgums.copy()
-                    super_positions = initial_supers.copy()
-
-                    score = 0
-                    lives = config.lives
-                    game_status = None
-                    invulnerable_remaining = 0.0
-
-                    print("Game restarted!")
-                    print(f"Lives restored: {lives}")
-
-                elif game_status is None:
-                    if event.key in (
-                        pygame.K_UP, pygame.K_w
-                    ):
-                        player.set_direction(Direction.NORTH)
-
-                    elif event.key in (
-                        pygame.K_DOWN, pygame.K_s
-                    ):
-                        player.set_direction(Direction.SOUTH)
-
-                    elif event.key in (
-                        pygame.K_LEFT, pygame.K_a
-                    ):
-                        player.set_direction(Direction.WEST)
-
-                    elif event.key in (
-                        pygame.K_RIGHT, pygame.K_d
-                    ):
-                        player.set_direction(Direction.EAST)
-
-                    elif event.key == pygame.K_SPACE:
-                        print("DEBUG: Frightened mode!")
-
-                        for _, ghost in ghosts:
-                            ghost.frightened()
-
-                    elif event.key == pygame.K_e:
-                        edible_ghosts = [
-                            ghost
-                            for _, ghost in ghosts
-                            if ghost.is_edible
-                        ]
-
-                        if edible_ghosts:
-                            px, py = player.get_world_position()
-
-                            nearest = min(
-                                edible_ghosts,
-                                key=lambda ghost: (
-                                    (
-                                        ghost.get_world_position()[0]
-                                        - px
-                                    ) ** 2
-                                    + (
-                                        ghost.get_world_position()[1]
-                                        - py
-                                    ) ** 2
-                                ),
-                            )
-
-                            nearest.get_eaten()
-                            score += config.points_per_ghost
-
-                            print(
-                                "DEBUG: Ghost eaten! "
-                                "Returning to spawn."
-                            )
+            if not running:
+                break
 
         if not running:
             break
 
-        if game_status is None:
-            invulnerable_remaining = max(
-                0.0, invulnerable_remaining - dt
+        # BACKEND: Update the complete game simulation.
+        game.update(dt)
+
+        # Resize when changing levels with different dimensions.
+        if game.level_index != previous_level:
+            screen = create_window(game)
+            previous_level = game.level_index
+
+        # Print important changes for debugging.
+        if game.lives != previous_lives:
+            print(f"Lives: {previous_lives} -> {game.lives}")
+            previous_lives = game.lives
+
+        if game.score != previous_score:
+            print(f"Score: {previous_score} -> {game.score}")
+            previous_score = game.score
+
+        if game.status != previous_status:
+            print(
+                f"Status: {previous_status.name} -> "
+                f"{game.status.name}"
             )
 
-            # Update Pac-Man.
-            arrived = player.update(
-                dt, movement, maze
-            )
+            previous_status = game.status
 
-            visited_cells = [
-                (player.row, player.col),
-                *arrived,
-            ]
-
-            # Eat normal and Super Pac-Gums.
-            for position in visited_cells:
-                if position in pacgum_positions:
-                    pacgum_positions.remove(position)
-                    score += config.points_per_pacgum
-
-                    print(
-                        f"Pac-Gum eaten! Score: {score}"
-                    )
-
-                if position in super_positions:
-                    super_positions.remove(position)
-                    score += config.points_per_super_pacgum
-
-                    print("SUPER PAC-GUM EATEN!")
-
-                    for _, ghost in ghosts:
-                        ghost.frightened()
-
-            # Update all four ghosts.
-            for ghost_type, ghost in ghosts:
-                previous_state = ghost.state
-
-                ghost.set_target(
-                    player.row, player.col
-                )
-
-                ghost.update(dt, movement, maze)
-
-                if ghost.state != previous_state:
-                    print(
-                        f"{ghost_type.name}: "
-                        f"{previous_state.name} -> "
-                        f"{ghost.state.name}"
-                    )
-
-            # Check ghost collisions.
-            if invulnerable_remaining <= 0.0:
-                dangerous_collision = any(
-                    ghost.is_dangerous
-                    and ghosts_collide(player, ghost)
-                    for _, ghost in ghosts
-                )
-
-                if dangerous_collision:
-                    lives -= 1
-
-                    print(
-                        f"Pac-Man hit! Lives: {lives}"
-                    )
-
-                    player.reset()
-
-                    for _, ghost in ghosts:
-                        ghost.reset()
-
-                    invulnerable_remaining = (
-                        INVULNERABLE_TIME
-                    )
-
-                    if lives <= 0:
-                        game_status = "GAME OVER"
-                        print("GAME OVER!")
-
-                else:
-                    for ghost_type, ghost in ghosts:
-                        if (
-                            ghost.is_edible
-                            and ghosts_collide(player, ghost)
-                        ):
-                            ghost.get_eaten()
-                            score += config.points_per_ghost
-
-                            print(
-                                f"{ghost_type.name} EATEN! "
-                                f"Score: {score}"
-                            )
-
-            # Check level completion.
-            if (
-                game_status is None
-                and not pacgum_positions
-                and not super_positions
-            ):
-                game_status = "LEVEL COMPLETE"
-                print(
-                    f"LEVEL COMPLETE! Score: {score}"
-                )
-
-        # Draw frame.
+        # FRONTEND: Render current engine state.
         screen.fill(COLOR_BG)
 
-        draw_raw_maze(screen, maze)
+        draw_raw_maze(
+            screen,
+            game.level.maze,
+        )
 
         draw_pacgums(
-            screen, pacgum_positions
+            screen,
+            game.level.pacgums,
         )
 
         draw_super_pacgums(
-            screen, super_positions
+            screen,
+            game.level.super_pacgums,
         )
 
-        draw_player(
-            screen, player, invulnerable_remaining
-        )
+        draw_player(screen, game)
 
-        for ghost_type, ghost in ghosts:
-            draw_ghost(
-                screen, ghost_type, ghost
-            )
+        for ghost in game.ghosts:
+            draw_ghost(screen, ghost)
 
-        draw_hud(
-            screen=screen,
-            font=font,
-            ghosts=ghosts,
-            maze_height=height,
-            score=score,
-            lives=lives,
-            pacgum_count=len(pacgum_positions),
-            super_count=len(super_positions),
-            game_status=game_status,
-        )
+        draw_hud(screen, game, font)
+        draw_status_message(screen, game, font)
 
         pygame.display.flip()
 
