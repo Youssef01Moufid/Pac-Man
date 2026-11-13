@@ -7,3 +7,4 @@ class LevelConfig:
 
     width: int
     height: int
+    pacgum: int

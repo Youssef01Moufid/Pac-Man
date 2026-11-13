@@ -1,19 +1,17 @@
-# Pac-Man configuration (lines starting with # are comments)
 {
     "highscore_filename": "highscores.json",
-    "lives": 3,
-    "pacgum": 42,
-    "points_per_pacgum": 10,
-    "points_per_super_pacgum": 50,
+    "lives": 5,
+    "points_per_pacgum": 11,
+    "points_per_super_pacgum": 20,
     "points_per_ghost": 200,
-    # level 1 uses this seed (must be above 0), later levels are random
     "seed": 42,
     "level_max_time": 90,
     "levels": [
-        {"width": 21, "height": 21}, {"width": 21, "height": 21},
-        {"width": 25, "height": 25}, {"width": 25, "height": 25},
-        {"width": 31, "height": 21}, {"width": 31, "height": 25},
-        {"width": 35, "height": 25}, {"width": 41, "height": 25},
-        {"width": 41, "height": 31}, {"width": 51, "height": 31}
+        
+        {"width": 3, "height": 3, "pacgum": 1}, {"width": 21, "height": 21, "pacgum": 1},
+        {"width": 25, "height": 25, "pacgum": 1}, {"width": 25, "height": 25, "pacgum": 1},
+        {"width": 31, "height": 21, "pacgum": 1}, {"width": 31, "height": 25, "pacgum": 1},
+        {"width": 35, "height": 25, "pacgum": 1}, {"width": 41, "height": 25, "pacgum": 1},
+        {"width": 41, "height": 31, "pacgum": 1}, {"width": 51, "height": 31, "pacgum": 1}
     ]
 }
