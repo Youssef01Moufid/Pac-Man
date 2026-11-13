@@ -1,7 +1,6 @@
 
 """Coordinate Pac-Man game rules and level progression."""
 
-from collections import deque
 from enum import Enum, auto
 from typing import Any
 
@@ -53,81 +52,16 @@ class GameState:
 
         self._setup_level()
 
-    def _get_reachable_cells(
-        self,
-        maze: list[list[int]],
-        start: tuple[int, int],
-    ) -> set[tuple[int, int]]:
-        """Find all cells reachable from the player's spawn."""
-        visited = {start}
-        queue = deque([start])
-
-        while queue:
-            row, col = queue.popleft()
-
-            for direction in Direction:
-                neighbor = self.movement.can_move(
-                    row, col, maze, direction
-                )
-
-                if neighbor is None or neighbor in visited:
-                    continue
-
-                visited.add(neighbor)
-                queue.append(neighbor)
-
-        return visited
-
-    def _choose_corner_positions(
-        self,
-        available: set[tuple[int, int]],
-        corners: list[tuple[int, int]],
-        preferred: list[tuple[int, int]],
-    ) -> list[tuple[int, int]]:
-        """Choose distinct reachable positions near corners."""
-        candidates = set(available)
-        positions = []
-
-        for index, corner in enumerate(corners):
-            if not candidates:
-                break
-
-            preferred_cell = (
-                preferred[index]
-                if index < len(preferred)
-                else corner
-            )
-
-            if preferred_cell in candidates:
-                selected = preferred_cell
-            else:
-                selected = min(
-                    candidates,
-                    key=lambda cell: (
-                        abs(cell[0] - corner[0])
-                        + abs(cell[1] - corner[1]),
-                        cell[0],
-                        cell[1],
-                    ),
-                )
-
-            positions.append(selected)
-            candidates.remove(selected)
-
-        return positions
-
     def _setup_level(self) -> None:
         """Generate and populate the current level."""
         level_config = self.config.levels[self.level_index]
 
         seed = self.config.seed if self.level_index == 0 else 0
 
-        maze_gen = MazeGen(
+        maze = MazeGen(
             width=level_config.width,
             height=level_config.height,
-        )
-
-        maze = maze_gen.generate(seed=seed)
+        ).generate(seed=seed)
 
         populate = Populate(
             maze,
@@ -137,37 +71,23 @@ class GameState:
         )
 
         player_spawn = populate.find_player_spawn()
+        ghost_spawns = populate.find_ghosts_spawn()
+        pacgums = set(populate.find_pacgum_spawn())
+        super_pacgums = set(
+            populate.find_superpacgum_spawn()
+        )
+
+        self.level = Level(
+            maze=maze,
+            pacgums=pacgums,
+            super_pacgums=super_pacgums,
+        )
 
         self.player = Player(
             row=player_spawn[0],
             col=player_spawn[1],
             speed=PLAYER_SPEED,
         )
-
-        reachable = self._get_reachable_cells(
-            maze, player_spawn
-        )
-
-        height = len(maze)
-        width = len(maze[0])
-
-        corners = [
-            (0, 0),
-            (0, width - 1),
-            (height - 1, 0),
-            (height - 1, width - 1),
-        ]
-
-        ghost_spawns = self._choose_corner_positions(
-            reachable - {player_spawn},
-            corners,
-            populate.find_ghosts_spawn(),
-        )
-
-        if len(ghost_spawns) != 4:
-            raise ValueError(
-                "The maze cannot accommodate four ghosts."
-            )
 
         ghost_types = [
             GhostType.RED,
@@ -192,28 +112,6 @@ class GameState:
             )
 
             self.ghosts.append(ghost)
-
-        reserved = {player_spawn, *ghost_spawns}
-
-        super_pacgums = set(
-            self._choose_corner_positions(
-                reachable - reserved,
-                corners,
-                populate.find_superpacgum_spawn(),
-            )
-        )
-
-        pacgums = set(populate.find_pacgum_spawn())
-
-        pacgums &= reachable
-        pacgums -= reserved
-        pacgums -= super_pacgums
-
-        self.level = Level(
-            maze=maze,
-            pacgums=pacgums,
-            super_pacgums=super_pacgums,
-        )
 
         self.time_left = float(self.config.level_max_time)
         self.invulnerable_remaining = 0.0
@@ -266,7 +164,6 @@ class GameState:
         if self.invulnerable_remaining > 0.0:
             return
 
-        # Dangerous collisions take priority.
         for ghost in self.ghosts:
             if ghost.is_dangerous and self._collides_with(ghost):
                 self._lose_life()

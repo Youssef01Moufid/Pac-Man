@@ -8,10 +8,10 @@
     "level_max_time": 90,
     "levels": [
         
-        {"width": 21, "height": 21, "pacgum": 4}, {"width": 21, "height": 21, "pacgum": 42},
-        {"width": 25, "height": 25, "pacgum": 42}, {"width": 25, "height": 25, "pacgum": 42},
-        {"width": 31, "height": 21, "pacgum": 42}, {"width": 31, "height": 25, "pacgum": 42},
-        {"width": 35, "height": 25, "pacgum": 42}, {"width": 41, "height": 25, "pacgum": 42},
-        {"width": 41, "height": 31, "pacgum": 42}, {"width": 51, "height": 31, "pacgum": 42}
+        {"width": 3, "height": 3, "pacgum": 1}, {"width": 21, "height": 21, "pacgum": 1},
+        {"width": 25, "height": 25, "pacgum": 1}, {"width": 25, "height": 25, "pacgum": 1},
+        {"width": 31, "height": 21, "pacgum": 1}, {"width": 31, "height": 25, "pacgum": 1},
+        {"width": 35, "height": 25, "pacgum": 1}, {"width": 41, "height": 25, "pacgum": 1},
+        {"width": 41, "height": 31, "pacgum": 1}, {"width": 51, "height": 31, "pacgum": 1}
     ]
 }

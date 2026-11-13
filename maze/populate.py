@@ -10,7 +10,7 @@ class Populate:
         self.pacgum_count = pacgum_count
 
     def _get_OpenCells(self) -> list[tuple[int, int]]:
-
+        """Return all cells that are not completely closed."""
         open_cells: list[tuple[int, int]] = []
 
         for i, row in enumerate(self.maze):
@@ -21,7 +21,7 @@ class Populate:
         return open_cells
 
     def _getDist(self, center_w: int, center_h: int) -> dict[tuple[int, int], int]:
-
+        """Calculate Manhattan distance to the center."""
         openCells: list[tuple[int, int]] = self._get_OpenCells()
         dists: dict[tuple[int, int], int] = {}
 
@@ -32,7 +32,7 @@ class Populate:
         return dists
 
     def find_player_spawn(self) -> tuple[int, int]:
-
+        """Find the open cell nearest the maze center."""
         center_w = self.width // 2
         center_h = self.height // 2
 
@@ -41,7 +41,7 @@ class Populate:
         return playerDim
 
     def find_ghosts_spawn(self) -> list[tuple[int, int]]:
-
+        """Return the four corners of the maze."""
         ghostsDim: list[tuple[int, int]] = []
 
         ghostsDim.append((0, 0))
@@ -51,12 +51,13 @@ class Populate:
         return ghostsDim
 
     def find_pacgum_spawn(self) -> list[tuple[int, int]]:
-
+        """Place regular Pac-Gums in available cells."""
         available_cells = self._get_OpenCells()
 
         reserved_cells = {
             self.find_player_spawn(),
-            *self.find_ghosts_spawn()
+            *self.find_ghosts_spawn(),
+            *self.find_superpacgum_spawn(),
         }
 
         available_cells = [
@@ -69,4 +70,5 @@ class Populate:
         return random.sample(available_cells, count)
 
     def find_superpacgum_spawn(self) -> list[tuple[int, int]]:
+        """Return Super Pac-Gum positions at the four corners."""
         return self.find_ghosts_spawn()
