@@ -8,7 +8,6 @@ class Config:
 
     highscore_filename: str
     lives: int
-    pacgum: int
     levels: tuple[LevelConfig, ...]
     points_per_pacgum: int
     points_per_super_pacgum: int
