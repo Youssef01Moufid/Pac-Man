@@ -161,13 +161,12 @@ class GameState:
 
     def _handle_collisions(self) -> None:
         """Handle dangerous and edible ghost collisions."""
-        if self.invulnerable_remaining > 0.0:
-            return
 
-        for ghost in self.ghosts:
-            if ghost.is_dangerous and self._collides_with(ghost):
-                self._lose_life()
-                return
+        if self.invulnerable_remaining <= 0.0:
+            for ghost in self.ghosts:
+                if ghost.is_dangerous and self._collides_with(ghost):
+                    self._lose_life()
+                    return
 
         for ghost in self.ghosts:
             if ghost.is_edible and self._collides_with(ghost):
@@ -234,12 +233,7 @@ class GameState:
             dt, self.movement, self.level.maze
         )
 
-        visited_positions = [
-            *arrived,
-            (self.player.row, self.player.col),
-        ]
-
-        self._handle_collectibles(visited_positions)
+        self._handle_collectibles(arrived)
 
         for ghost in self.ghosts:
             ghost.set_target(
