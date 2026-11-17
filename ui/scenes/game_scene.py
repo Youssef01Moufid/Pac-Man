@@ -38,7 +38,7 @@ class GameScene(Scene):
             from ui.scenes.pause_scene import PauseScene
             if self.game.status == GameStatus.PLAYING:
                 self.game.pause()
-            self.manager.push(PauseScene(self.manager, self.width, self.height, self.game))
+            self.manager.push(PauseScene(self.manager, self.width, self.height, self.game,self.config))
         
         if event.type == pygame.KEYDOWN:
             if event.key in (pygame.K_UP, pygame.K_w):
@@ -302,8 +302,8 @@ class GameScene(Scene):
             y, x = pacgum
             cx = int(x_start + (x * cell) + cell / 2)
             cy = int(y_start + (y * cell) + cell / 2)
-            w = cell * 0.1
-            rect = pygame.Rect(cx, cy, w, w)
+            r = cell * 0.1
+            rect = pygame.Rect(cx, cy, r, r)
             pygame.draw.rect(
                 surface,
                 "thistle1",
@@ -320,8 +320,8 @@ class GameScene(Scene):
             y, x = pac
             cx = int(x_start + (x * cell) + cell / 3)
             cy = int(y_start + (y * cell) + cell / 3)
-            w = cell * 0.2
-            rect = pygame.Rect(cx, cy, w, w)
+            r = cell * 0.2
+            rect = pygame.Rect(cx, cy, r, r)
             pygame.draw.rect(
                 surface,
                 "white",

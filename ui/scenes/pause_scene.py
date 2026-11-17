@@ -3,6 +3,7 @@ from ui.widgets.menu import Menu
 from ui.scene_manager import SceneManager
 from ui.widgets.button import Button
 from game.gamestate import GameState, GameStatus
+from config.model import Config
 import pygame
 
 class PauseScene(Scene):
@@ -11,7 +12,8 @@ class PauseScene(Scene):
             manager: SceneManager,
             width: int,
             height: int,
-            game: GameState):
+            game: GameState,
+            config: Config):
         super().__init__(manager)
         surface = pygame.display.get_surface()
         self.menu = Menu(buttons=[
@@ -25,6 +27,7 @@ class PauseScene(Scene):
         self.overlay.fill((0, 0, 0))
         self.overlay.set_alpha(160)
         self.game = game
+        self.config = config
 
     def _resume(self) -> None:
         if self.game.status == GameStatus.PAUSED:
@@ -35,7 +38,9 @@ class PauseScene(Scene):
     def _back_to_menu(self) -> None:
         from ui.scenes.mainmenu_scene import MainMenuScene
         w, h = self.overlay.get_size()
-        self.manager.replace(MainMenuScene(self.manager, w, h, self.game))
+        self.manager.replace(
+            MainMenuScene(self.manager, w, h, self.config)
+        )
     
 
     def handle_events(self, event: pygame.event.Event) -> None:
