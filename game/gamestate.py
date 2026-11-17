@@ -288,26 +288,3 @@ class GameState:
         self.lives = self.config.lives
 
         self._setup_level()
-
-
- 
-
-    def handle_events(self, event: pygame.event.Event) -> None:
-        if event.type == pygame.KEYDOWN:
-            if event.key in (pygame.K_UP, pygame.K_w):
-                self.set_player_direction(Direction.NORTH)
-            elif event.key in (pygame.K_DOWN, pygame.K_s):
-                self.set_player_direction(Direction.SOUTH)
-            elif event.key in (pygame.K_RIGHT, pygame.K_d):
-                self.set_player_direction(Direction.EAST)
-            elif event.key in (pygame.K_LEFT, pygame.K_a):
-                self.set_player_direction(Direction.WEST)
-            
-            elif event.key == pygame.K_F1:
-                for ghost in self.ghosts:
-                    ghost.frightened()
-
-            elif event.key == pygame.K_n:
-                if self.status == GameStatus.LEVEL_COMPLETE:
-                    self.next_level()
-            
