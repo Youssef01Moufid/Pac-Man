@@ -1,6 +1,6 @@
 import pygame
-from ui.game_session import GameSession
-
+# from ui.game_session import GameSession
+from game.gamestate import GameState
 import os
 
 FONT_URL = os.path.join('assets', 'fonts', 'PressStart2P-Regular.ttf')
@@ -11,7 +11,7 @@ class Hud:
     FG = (255, 230, 0)
 
 
-    def __init__(self, game: GameSession) -> None:
+    def __init__(self, game: GameState) -> None:
         self.game = game
         try:
             self.font = pygame.font.Font(FONT_URL, 28)
@@ -27,7 +27,6 @@ class Hud:
         texts = [
             f"SCORE {self.game.score}",
             f"LIVES {self.game.lives}",
-            f"LEVEL {self.game.level}",
             f"TIME {int(self.game.time_left)}"
         ]
 

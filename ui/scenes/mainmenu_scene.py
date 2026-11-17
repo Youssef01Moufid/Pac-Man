@@ -3,6 +3,8 @@ from ui.scene_manager import SceneManager
 from ui.widgets.button import Button
 from ui.widgets.menu import Menu
 from ui.scenes.game_scene import GameScene
+from game.gamestate import GameState
+from config.model import Config
 import os
 import pygame
 
@@ -16,13 +18,14 @@ class MainMenuScene(Scene):
             self,
             manager: SceneManager,
             width: int,
-            height: int
+            height: int,
+            config: Config
             ) -> None:
         
         super().__init__(manager)
         self.width = width
         self.height = height
-        
+        self.config = config
         self.menu = Menu(
             [
                 Button("START GAME ", self._start),
@@ -40,7 +43,8 @@ class MainMenuScene(Scene):
             self.font = pygame.font.Font(None, 56)
 
     def _start(self) -> None:
-        self.manager.replace(GameScene(self.manager, self.width, self.height))
+        game = GameState(self.config)
+        self.manager.replace(GameScene(self.manager, self.width, self.height, game, self.config))
     
     def _instructions(self) -> None:
         print("INSTRUCTIONS")

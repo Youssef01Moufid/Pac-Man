@@ -17,23 +17,6 @@ class Player(Entity):
     def __init__(self, row: int, col: int, speed: float = 3.0) -> None:
         super().__init__(row, col, speed)
 
-<<<<<<< HEAD
-    `position` is the cell it last arrived at. While it travels, `progress`
-    (0 to 1) says how far it is toward the next cell in `direction`. It only
-    changes direction at a cell center, except for turning back, which is
-    allowed at any moment.
-    """
-
-    def __init__(
-        self,
-        position: tuple[int, int],
-        speed: float = 3.0,
-    ) -> None:
-        """Place the player on a cell; speed is in cells per second."""
-        self.position = position
-        self.direction: Direction | None = None
-=======
->>>>>>> 96a23928f223158a0602e23a289d2a763b274575
         self.desired_direction: Direction | None = None
 
     def set_direction(self, direction: Direction) -> None:
@@ -90,24 +73,3 @@ class Player(Entity):
         self.direction = self.desired_direction
         self.desired_direction = None
         self.progress = 1.0 - self.progress
-<<<<<<< HEAD
-
-    def _stop(self) -> None:
-        """Stand still on the current cell."""
-        self.direction = None
-        self.progress = 0.0
-
-    def get_world_position(self) -> tuple[float, float]:
-        """Return the exact (x, y) position: x is the column, y the row."""
-        row, col = self.position
-
-        if self.direction is None:
-            return float(col), float(row)
-
-        dx, dy = _SCREEN_STEP[self.direction]
-        return (
-            col + dx * self.progress,
-            row + dy * self.progress,
-        )
-=======
->>>>>>> 96a23928f223158a0602e23a289d2a763b274575

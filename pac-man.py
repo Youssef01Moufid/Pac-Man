@@ -389,11 +389,11 @@ def handle_keydown(
         return True
 
     if event.key == pygame.K_n:
-        if game.status == GameStatus.LEVEL_COMPLETE:
-            game.next_level()
-            print(
-                f"Started level {game.level_index + 1}"
-            )
+        # if game.status == GameStatus.LEVEL_COMPLETE:
+        game.next_level()
+        print(
+            f"Started level {game.level_index + 1}"
+        )
         return True
 
     if game.status != GameStatus.PLAYING:
