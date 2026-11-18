@@ -1,4 +1,3 @@
-
 """Coordinate Pac-Man game rules and level progression."""
 
 from enum import Enum, auto
@@ -121,7 +120,6 @@ class GameState:
 
             self.ghosts.append(ghost)
 
-        # Use the current level's configured time limit.
         self.time_left = float(level_config.level_max_time)
 
         self.invulnerable_remaining = 0.0
@@ -171,9 +169,6 @@ class GameState:
 
     def _handle_collisions(self) -> None:
         """Handle dangerous and edible ghost collisions."""
-
-        # Temporary invulnerability prevents losing lives,
-        # but frightened ghosts can still be eaten.
         if self.invulnerable_remaining <= 0.0:
             for ghost in self.ghosts:
                 if (
