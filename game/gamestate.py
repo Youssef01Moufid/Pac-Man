@@ -121,7 +121,9 @@ class GameState:
 
             self.ghosts.append(ghost)
 
-        self.time_left = float(self.config.level_max_time)
+        # Use the current level's configured time limit.
+        self.time_left = float(level_config.level_max_time)
+
         self.invulnerable_remaining = 0.0
         self.status = GameStatus.PLAYING
 
@@ -170,14 +172,22 @@ class GameState:
     def _handle_collisions(self) -> None:
         """Handle dangerous and edible ghost collisions."""
 
+        # Temporary invulnerability prevents losing lives,
+        # but frightened ghosts can still be eaten.
         if self.invulnerable_remaining <= 0.0:
             for ghost in self.ghosts:
-                if ghost.is_dangerous and self._collides_with(ghost):
+                if (
+                    ghost.is_dangerous
+                    and self._collides_with(ghost)
+                ):
                     self._lose_life()
                     return
 
         for ghost in self.ghosts:
-            if ghost.is_edible and self._collides_with(ghost):
+            if (
+                ghost.is_edible
+                and self._collides_with(ghost)
+            ):
                 ghost.get_eaten()
                 self.score += self.config.points_per_ghost
 
@@ -198,13 +208,12 @@ class GameState:
         self.invulnerable_remaining = INVULNERABLE_TIME
 
     def _handle_timeout(self) -> None:
-        """Apply the time-up rule."""
+        """Apply the current level's time-up rule."""
         self._lose_life()
 
         if self.status == GameStatus.PLAYING:
-            self.time_left = float(
-                self.config.level_max_time
-            )
+            level_config = self.config.levels[self.level_index]
+            self.time_left = float(level_config.level_max_time)
 
     def _check_level_completion(self) -> None:
         """Check whether the current level is finished."""
