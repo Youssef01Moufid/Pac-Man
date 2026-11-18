@@ -8,3 +8,4 @@ class LevelConfig:
     width: int
     height: int
     pacgum: int
+    level_max_time: int

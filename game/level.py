@@ -17,11 +17,13 @@ class Level:
 
     def __init__(
         self,
+        index: int,
         maze: list[list[int]],
         pacgums: set[tuple[int, int]],
         super_pacgums: set[tuple[int, int]],
     ) -> None:
         """Initialize the level with its maze and collectibles."""
+        self.index = index
         self.maze = maze
         self.pacgums = pacgums.copy()
         self.super_pacgums = super_pacgums.copy()
