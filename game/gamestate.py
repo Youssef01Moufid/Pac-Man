@@ -50,6 +50,9 @@ class GameState:
 
         self.status = GameStatus.PLAYING
 
+        self.ghosts_frozen = False
+        self.speed_boost = False
+
         self._setup_level()
 
     def _setup_level(self) -> None:
@@ -78,6 +81,7 @@ class GameState:
         )
 
         self.level = Level(
+            index=self.level_index,
             maze=maze,
             pacgums=pacgums,
             super_pacgums=super_pacgums,
@@ -86,7 +90,11 @@ class GameState:
         self.player = Player(
             row=player_spawn[0],
             col=player_spawn[1],
-            speed=PLAYER_SPEED,
+            speed=(
+                PLAYER_SPEED * 2
+                if self.speed_boost
+                else PLAYER_SPEED
+            ),
         )
 
         ghost_types = [
@@ -208,6 +216,29 @@ class GameState:
         else:
             self.status = GameStatus.LEVEL_COMPLETE
 
+    def toggle_ghost_freeze(self) -> None:
+        """Enable or disable ghost freeze."""
+        self.ghosts_frozen = not self.ghosts_frozen
+
+    def toggle_speed_boost(self) -> None:
+        """Enable or disable increased player speed."""
+        self.speed_boost = not self.speed_boost
+
+        if self.speed_boost:
+            self.player.speed = PLAYER_SPEED * 2
+        else:
+            self.player.speed = PLAYER_SPEED
+
+    def skip_level(self) -> None:
+        """Immediately complete the current level."""
+        if self.status != GameStatus.PLAYING:
+            return
+
+        if self.level_index == len(self.config.levels) - 1:
+            self.status = GameStatus.GAME_WON
+        else:
+            self.status = GameStatus.LEVEL_COMPLETE
+
     def update(self, dt: float) -> None:
         """Advance one frame of game simulation."""
         if self.status != GameStatus.PLAYING:
@@ -235,15 +266,16 @@ class GameState:
 
         self._handle_collectibles(arrived)
 
-        for ghost in self.ghosts:
-            ghost.set_target(
-                self.player.row,
-                self.player.col,
-            )
+        if not self.ghosts_frozen:
+            for ghost in self.ghosts:
+                ghost.set_target(
+                    self.player.row,
+                    self.player.col,
+                )
 
-            ghost.update(
-                dt, self.movement, self.level.maze
-            )
+                ghost.update(
+                    dt, self.movement, self.level.maze
+                )
 
         self._handle_collisions()
 
@@ -275,9 +307,12 @@ class GameState:
             self.status = GameStatus.PLAYING
 
     def restart(self) -> None:
-        """Restart the entire game from the first level."""
+        """Restart the game with default settings."""
         self.level_index = 0
         self.score = 0
         self.lives = self.config.lives
+
+        self.ghosts_frozen = False
+        self.speed_boost = False
 
         self._setup_level()
