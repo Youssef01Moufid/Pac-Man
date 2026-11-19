@@ -1,4 +1,3 @@
-
 """Coordinate Pac-Man game rules and level progression."""
 
 from enum import Enum, auto

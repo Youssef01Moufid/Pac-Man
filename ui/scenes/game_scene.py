@@ -51,8 +51,13 @@ class GameScene(Scene):
                 self.game.set_player_direction(Direction.WEST)
             
             elif event.key == pygame.K_F1:
-                for ghost in self.game.ghosts:
-                    ghost.frightened()
+                self.game.toggle_ghost_freeze()
+            
+            elif event.key == pygame.K_F2:
+                self.game.toggle_speed_boost()
+            
+            elif event.key == pygame.K_F3:
+                self.game.skip_level()
 
             elif event.key == pygame.K_n:
                 if self.game.status == GameStatus.LEVEL_COMPLETE:
