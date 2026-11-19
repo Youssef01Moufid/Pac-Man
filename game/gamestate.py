@@ -12,11 +12,9 @@ from model.movement import Direction, Movement
 from model.pathfinder import Pathfinder
 from model.player import Player
 
-import pygame
 
-
-PLAYER_SPEED = 4.0
-GHOST_SPEED = 3.5
+PLAYER_SPEED = 5.0
+GHOST_SPEED = 4.5
 FRIGHTENED_TIME = 8.0
 RESPAWN_TIME = 3.0
 INVULNERABLE_TIME = 1.5
@@ -52,6 +50,9 @@ class GameState:
 
         self.status = GameStatus.PLAYING
 
+        self.ghosts_frozen = False
+        self.speed_boost = False
+
         self._setup_level()
 
     def _setup_level(self) -> None:
@@ -80,6 +81,7 @@ class GameState:
         )
 
         self.level = Level(
+            index=self.level_index,
             maze=maze,
             pacgums=pacgums,
             super_pacgums=super_pacgums,
@@ -88,7 +90,11 @@ class GameState:
         self.player = Player(
             row=player_spawn[0],
             col=player_spawn[1],
-            speed=PLAYER_SPEED,
+            speed=(
+                PLAYER_SPEED * 2
+                if self.speed_boost
+                else PLAYER_SPEED
+            ),
         )
 
         ghost_types = [
@@ -115,7 +121,9 @@ class GameState:
 
             self.ghosts.append(ghost)
 
-        self.time_left = float(self.config.level_max_time)
+        # Use the current level's configured time limit.
+        self.time_left = float(level_config.level_max_time)
+
         self.invulnerable_remaining = 0.0
         self.status = GameStatus.PLAYING
 
@@ -163,16 +171,23 @@ class GameState:
 
     def _handle_collisions(self) -> None:
         """Handle dangerous and edible ghost collisions."""
-        if self.invulnerable_remaining > 0.0:
-            return
+
+        # Temporary invulnerability prevents losing lives,
+        # but frightened ghosts can still be eaten.
+        if self.invulnerable_remaining <= 0.0:
+            for ghost in self.ghosts:
+                if (
+                    ghost.is_dangerous
+                    and self._collides_with(ghost)
+                ):
+                    self._lose_life()
+                    return
 
         for ghost in self.ghosts:
-            if ghost.is_dangerous and self._collides_with(ghost):
-                self._lose_life()
-                return
-
-        for ghost in self.ghosts:
-            if ghost.is_edible and self._collides_with(ghost):
+            if (
+                ghost.is_edible
+                and self._collides_with(ghost)
+            ):
                 ghost.get_eaten()
                 self.score += self.config.points_per_ghost
 
@@ -193,17 +208,39 @@ class GameState:
         self.invulnerable_remaining = INVULNERABLE_TIME
 
     def _handle_timeout(self) -> None:
-        """Apply the time-up rule."""
+        """Apply the current level's time-up rule."""
         self._lose_life()
 
         if self.status == GameStatus.PLAYING:
-            self.time_left = float(
-                self.config.level_max_time
-            )
+            level_config = self.config.levels[self.level_index]
+            self.time_left = float(level_config.level_max_time)
 
     def _check_level_completion(self) -> None:
         """Check whether the current level is finished."""
         if not self.level.is_complete():
+            return
+
+        if self.level_index == len(self.config.levels) - 1:
+            self.status = GameStatus.GAME_WON
+        else:
+            self.status = GameStatus.LEVEL_COMPLETE
+
+    def toggle_ghost_freeze(self) -> None:
+        """Enable or disable ghost freeze."""
+        self.ghosts_frozen = not self.ghosts_frozen
+
+    def toggle_speed_boost(self) -> None:
+        """Enable or disable increased player speed."""
+        self.speed_boost = not self.speed_boost
+
+        if self.speed_boost:
+            self.player.speed = PLAYER_SPEED * 2
+        else:
+            self.player.speed = PLAYER_SPEED
+
+    def skip_level(self) -> None:
+        """Immediately complete the current level."""
+        if self.status != GameStatus.PLAYING:
             return
 
         if self.level_index == len(self.config.levels) - 1:
@@ -235,22 +272,19 @@ class GameState:
         arrived = self.player.update(
             dt, self.movement, self.level.maze
         )
-        visited_positions = [
-            *arrived,
-            (self.player.row, self.player.col),
-        ]
 
-        self._handle_collectibles(visited_positions)
+        self._handle_collectibles(arrived)
 
-        for ghost in self.ghosts:
-            ghost.set_target(
-                self.player.row,
-                self.player.col,
-            )
+        if not self.ghosts_frozen:
+            for ghost in self.ghosts:
+                ghost.set_target(
+                    self.player.row,
+                    self.player.col,
+                )
 
-            ghost.update(
-                dt, self.movement, self.level.maze
-            )
+                ghost.update(
+                    dt, self.movement, self.level.maze
+                )
 
         self._handle_collisions()
 
@@ -282,9 +316,12 @@ class GameState:
             self.status = GameStatus.PLAYING
 
     def restart(self) -> None:
-        """Restart the entire game from the first level."""
+        """Restart the game with default settings."""
         self.level_index = 0
         self.score = 0
         self.lives = self.config.lives
+
+        self.ghosts_frozen = False
+        self.speed_boost = False
 
         self._setup_level()

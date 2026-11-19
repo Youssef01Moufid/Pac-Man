@@ -1,5 +1,5 @@
 
-"""Pygame integration test for the Pac-Man engine."""
+"""Test the complete Pac-Man engine using pygame."""
 
 import sys
 
@@ -7,24 +7,20 @@ import pygame
 
 from config.loader import ConfigLoader
 from game.gamestate import GameState, GameStatus
-from model.ghost import Ghost, GhostState, GhostType
+from model.ghost import GhostState, GhostType
 from model.movement import Direction
 
 
 CELL_SIZE = 40
-WALL_THICKNESS = 4
-HUD_HEIGHT = 155
+WALL_SIZE = 4
+HUD_HEIGHT = 125
 FPS = 60
 
-COLOR_BG = (0, 0, 0)
-COLOR_WALL = (36, 36, 255)
-COLOR_PLAYER = (255, 255, 0)
-COLOR_PACGUM = (255, 184, 174)
-COLOR_SUPER = (255, 255, 255)
-COLOR_FRIGHTENED = (40, 90, 255)
-COLOR_EATEN = (255, 255, 255)
-COLOR_RESPAWNING = (100, 100, 100)
-COLOR_TEXT = (235, 235, 235)
+BLACK = (0, 0, 0)
+BLUE = (36, 36, 255)
+YELLOW = (255, 255, 0)
+WHITE = (255, 255, 255)
+PINK = (255, 184, 174)
 
 GHOST_COLORS = {
     GhostType.RED: (255, 45, 45),
@@ -33,296 +29,28 @@ GHOST_COLORS = {
     GhostType.ORANGE: (255, 165, 35),
 }
 
+KEY_DIRECTIONS = {
+    pygame.K_UP: Direction.NORTH,
+    pygame.K_RIGHT: Direction.EAST,
+    pygame.K_DOWN: Direction.SOUTH,
+    pygame.K_LEFT: Direction.WEST,
+    pygame.K_w: Direction.NORTH,
+    pygame.K_d: Direction.EAST,
+    pygame.K_s: Direction.SOUTH,
+    pygame.K_a: Direction.WEST,
+}
 
-def cell_center(
-    row: float,
-    col: float,
-) -> tuple[int, int]:
-    """Convert maze coordinates into pixel coordinates."""
+
+def cell_center(row: float, col: float) -> tuple[int, int]:
+    """Convert maze coordinates to screen pixels."""
     return (
         int((col + 0.5) * CELL_SIZE),
         int((row + 0.5) * CELL_SIZE),
     )
 
 
-def draw_raw_maze(
-    screen: pygame.Surface,
-    maze: list[list[int]],
-) -> None:
-    """Draw maze walls using the raw wall bitmasks."""
-    for row, cells in enumerate(maze):
-        for col, value in enumerate(cells):
-            x = col * CELL_SIZE
-            y = row * CELL_SIZE
-
-            if value & 1:
-                pygame.draw.line(
-                    screen,
-                    COLOR_WALL,
-                    (x, y),
-                    (x + CELL_SIZE, y),
-                    WALL_THICKNESS,
-                )
-
-            if value & 2:
-                pygame.draw.line(
-                    screen,
-                    COLOR_WALL,
-                    (x + CELL_SIZE, y),
-                    (x + CELL_SIZE, y + CELL_SIZE),
-                    WALL_THICKNESS,
-                )
-
-            if value & 4:
-                pygame.draw.line(
-                    screen,
-                    COLOR_WALL,
-                    (x, y + CELL_SIZE),
-                    (x + CELL_SIZE, y + CELL_SIZE),
-                    WALL_THICKNESS,
-                )
-
-            if value & 8:
-                pygame.draw.line(
-                    screen,
-                    COLOR_WALL,
-                    (x, y),
-                    (x, y + CELL_SIZE),
-                    WALL_THICKNESS,
-                )
-
-
-def draw_pacgums(
-    screen: pygame.Surface,
-    positions: set[tuple[int, int]],
-) -> None:
-    """Draw regular Pac-Gums."""
-    for row, col in positions:
-        pygame.draw.circle(
-            screen,
-            COLOR_PACGUM,
-            cell_center(row, col),
-            max(2, int(CELL_SIZE * 0.1)),
-        )
-
-
-def draw_super_pacgums(
-    screen: pygame.Surface,
-    positions: set[tuple[int, int]],
-) -> None:
-    """Draw Super Pac-Gums."""
-    for row, col in positions:
-        pygame.draw.circle(
-            screen,
-            COLOR_SUPER,
-            cell_center(row, col),
-            int(CELL_SIZE * 0.25),
-        )
-
-
-def draw_player(
-    screen: pygame.Surface,
-    game: GameState,
-) -> None:
-    """Draw Pac-Man using smooth movement coordinates."""
-    if (
-        game.invulnerable_remaining > 0.0
-        and int(game.invulnerable_remaining * 8) % 2 == 0
-    ):
-        return
-
-    x, y = game.player.get_world_position()
-
-    pygame.draw.circle(
-        screen,
-        COLOR_PLAYER,
-        cell_center(y, x),
-        int(CELL_SIZE * 0.35),
-    )
-
-
-def draw_ghost(
-    screen: pygame.Surface,
-    ghost: Ghost,
-) -> None:
-    """Draw a ghost using its type and current state."""
-    x, y = ghost.get_world_position()
-    cx, cy = cell_center(y, x)
-
-    if ghost.state == GhostState.NORMAL:
-        color = GHOST_COLORS[ghost.ghost_type]
-
-    elif ghost.state == GhostState.FRIGHTENED:
-        color = COLOR_FRIGHTENED
-
-    elif ghost.state == GhostState.EATEN:
-        color = COLOR_EATEN
-
-    else:
-        color = COLOR_RESPAWNING
-
-    size = int(CELL_SIZE * 0.65)
-
-    rect = pygame.Rect(0, 0, size, size)
-    rect.center = (cx, cy)
-
-    pygame.draw.rect(
-        screen,
-        color,
-        rect,
-        border_radius=7,
-    )
-
-    # Draw the ghost's eyes.
-    for offset in (-6, 6):
-        pygame.draw.circle(
-            screen,
-            (255, 255, 255),
-            (cx + offset, cy - 4),
-            4,
-        )
-
-        pygame.draw.circle(
-            screen,
-            (20, 20, 20),
-            (cx + offset, cy - 4),
-            2,
-        )
-
-
-def draw_hud(
-    screen: pygame.Surface,
-    game: GameState,
-    font: pygame.font.Font,
-) -> None:
-    """Display game information from GameState."""
-    maze_height = len(game.level.maze)
-    top = maze_height * CELL_SIZE + 8
-
-    lines = [
-        (
-            f"Level: {game.level_index + 1}/"
-            f"{len(game.config.levels)}    "
-            f"Score: {game.score}    Lives: {game.lives}"
-        ),
-        (
-            f"Time: {game.time_left:.1f}s    "
-            f"Pac-Gums: {len(game.level.pacgums)}    "
-            f"Super: {len(game.level.super_pacgums)}"
-        ),
-        f"Status: {game.status.name}",
-    ]
-
-    for index, line in enumerate(lines):
-        surface = font.render(
-            line,
-            True,
-            COLOR_TEXT,
-        )
-        screen.blit(
-            surface,
-            (10, top + index * 22),
-        )
-
-    # Draw four ghost states in two columns.
-    ghost_top = top + 70
-
-    for index, ghost in enumerate(game.ghosts):
-        state_text = ghost.state.name
-
-        if ghost.state == GhostState.FRIGHTENED:
-            state_text += (
-                f" {ghost.frightened_remaining:.1f}s"
-            )
-
-        elif ghost.state == GhostState.RESPAWNING:
-            state_text += (
-                f" {ghost.respawn_remaining:.1f}s"
-            )
-
-        column = index % 2
-        line = index // 2
-
-        x = 10 + column * (screen.get_width() // 2)
-        y = ghost_top + line * 23
-
-        label = (
-            f"{ghost.ghost_type.name}: {state_text}"
-        )
-
-        surface = font.render(
-            label,
-            True,
-            GHOST_COLORS[ghost.ghost_type],
-        )
-
-        screen.blit(surface, (x, y))
-
-
-def draw_status_message(
-    screen: pygame.Surface,
-    game: GameState,
-    font: pygame.font.Font,
-) -> None:
-    """Display paused and finished game states."""
-    messages = {
-        GameStatus.PAUSED: "PAUSED - Press P",
-        GameStatus.LEVEL_COMPLETE: "LEVEL COMPLETE - Press N",
-        GameStatus.GAME_OVER: "GAME OVER - Press R",
-        GameStatus.GAME_WON: "YOU WON! - Press R",
-    }
-
-    message = messages.get(game.status)
-
-    if message is None:
-        return
-
-    maze_height = len(game.level.maze) * CELL_SIZE
-
-    overlay = pygame.Surface(
-        (screen.get_width(), maze_height),
-        pygame.SRCALPHA,
-    )
-
-    overlay.fill((0, 0, 0, 170))
-    screen.blit(overlay, (0, 0))
-
-    message_font = pygame.font.Font(None, 34)
-
-    surface = message_font.render(
-        message,
-        True,
-        COLOR_PLAYER,
-    )
-
-    rect = surface.get_rect(
-        center=(
-            screen.get_width() // 2,
-            maze_height // 2,
-        )
-    )
-
-    screen.blit(surface, rect)
-
-
-def print_controls() -> None:
-    """Print test controls in the terminal."""
-    print("\n=== PAC-MAN ENGINE TEST ===")
-    print("WASD / Arrows : Move Pac-Man")
-    print("SPACE         : Frighten ghosts (debug)")
-    print("E             : Eat nearest frightened ghost (debug)")
-    print("P             : Pause / Resume")
-    print("N             : Next level after completion")
-    print("C             : Clear collectibles (debug)")
-    print("R             : Restart game")
-    print("ESC           : Quit")
-    print("===========================\n")
-
-
-def create_window(
-    game: GameState,
-) -> pygame.Surface:
-    """Create or resize the window for the active level."""
+def create_screen(game: GameState) -> pygame.Surface:
+    """Create a window matching the current level size."""
     height = len(game.level.maze)
     width = len(game.level.maze[0])
 
@@ -334,160 +62,266 @@ def create_window(
     )
 
 
-def debug_eat_ghost(game: GameState) -> None:
-    """Simulate eating the nearest frightened ghost."""
-    edible = [
-        ghost
-        for ghost in game.ghosts
-        if ghost.is_edible
-    ]
+def draw_maze(
+    screen: pygame.Surface,
+    maze: list[list[int]],
+) -> None:
+    """Draw maze walls from their bitmask values."""
+    for row, cells in enumerate(maze):
+        for col, value in enumerate(cells):
+            x = col * CELL_SIZE
+            y = row * CELL_SIZE
 
-    if not edible:
-        print("No frightened ghost available.")
-        return
+            walls = [
+                (1, (x, y), (x + CELL_SIZE, y)),
+                (
+                    2,
+                    (x + CELL_SIZE, y),
+                    (x + CELL_SIZE, y + CELL_SIZE),
+                ),
+                (
+                    4,
+                    (x, y + CELL_SIZE),
+                    (x + CELL_SIZE, y + CELL_SIZE),
+                ),
+                (8, (x, y), (x, y + CELL_SIZE)),
+            ]
 
+            for bit, start, end in walls:
+                if value & bit:
+                    pygame.draw.line(
+                        screen, BLUE, start, end, WALL_SIZE
+                    )
+
+
+def draw_collectibles(
+    screen: pygame.Surface,
+    game: GameState,
+) -> None:
+    """Draw remaining regular and Super Pac-Gums."""
+    for row, col in game.level.pacgums:
+        pygame.draw.circle(
+            screen,
+            PINK,
+            cell_center(row, col),
+            4,
+        )
+
+    for row, col in game.level.super_pacgums:
+        pygame.draw.circle(
+            screen,
+            WHITE,
+            cell_center(row, col),
+            10,
+        )
+
+
+def draw_entities(
+    screen: pygame.Surface,
+    game: GameState,
+) -> None:
+    """Draw Player and Ghosts using smooth world positions."""
     px, py = game.player.get_world_position()
 
-    def distance_squared(ghost: Ghost) -> float:
-        gx, gy = ghost.get_world_position()
-        return (gx - px) ** 2 + (gy - py) ** 2
-
-    nearest = min(edible, key=distance_squared)
-
-    nearest.get_eaten()
-    game.score += game.config.points_per_ghost
-
-    print(
-        f"DEBUG: {nearest.ghost_type.name} eaten. "
-        f"Score: {game.score}"
+    # Blink after losing a life.
+    visible = (
+        game.invulnerable_remaining <= 0.0
+        or int(game.invulnerable_remaining * 8) % 2 != 0
     )
 
+    if visible:
+        pygame.draw.circle(
+            screen,
+            YELLOW,
+            cell_center(py, px),
+            int(CELL_SIZE * 0.35),
+        )
 
-def handle_keydown(
+    for ghost in game.ghosts:
+        if ghost.state == GhostState.RESPAWNING:
+            continue
+
+        gx, gy = ghost.get_world_position()
+
+        if ghost.state == GhostState.FRIGHTENED:
+            color = (40, 90, 255)
+        elif ghost.state == GhostState.EATEN:
+            color = WHITE
+        else:
+            color = GHOST_COLORS[ghost.ghost_type]
+
+        pygame.draw.circle(
+            screen,
+            color,
+            cell_center(gy, gx),
+            int(CELL_SIZE * 0.3),
+        )
+
+
+def draw_hud(
+    screen: pygame.Surface,
+    game: GameState,
+    font: pygame.font.Font,
+) -> None:
+    """Show the current game information."""
+    top = len(game.level.maze) * CELL_SIZE + 8
+
+    lines = [
+        (
+            f"Level: {game.level_index + 1}/"
+            f"{len(game.config.levels)}"
+            f"   Score: {game.score}"
+            f"   Lives: {game.lives}"
+            f"   Time: {game.time_left:.1f}"
+        ),
+        (
+            f"Pac-Gums: {len(game.level.pacgums)}"
+            f"   Super: {len(game.level.super_pacgums)}"
+            f"   Status: {game.status.name}"
+        ),
+        (
+            f"Ghost Freeze: {'ON' if game.ghosts_frozen else 'OFF'}"
+            f"   Speed Boost: {'ON' if game.speed_boost else 'OFF'}"
+        ),
+        "F1: Freeze   F2: Speed   F3: Skip   N: Next",
+        "WASD/Arrows: Move   P: Pause   R: Restart   ESC: Quit",
+    ]
+
+    for index, line in enumerate(lines):
+        text = font.render(line, True, WHITE)
+        screen.blit(text, (8, top + index * 23))
+
+
+def draw_status(
+    screen: pygame.Surface,
+    game: GameState,
+) -> None:
+    """Display game status messages."""
+    messages = {
+        GameStatus.PAUSED: "PAUSED",
+        GameStatus.LEVEL_COMPLETE: "LEVEL COMPLETE - Press N",
+        GameStatus.GAME_WON: "YOU WIN! - Press R",
+        GameStatus.GAME_OVER: "GAME OVER - Press R",
+    }
+
+    message = messages.get(game.status)
+
+    if message is None:
+        return
+
+    font = pygame.font.Font(None, 36)
+    text = font.render(message, True, YELLOW)
+
+    maze_height = len(game.level.maze) * CELL_SIZE
+
+    overlay = pygame.Surface(
+        (screen.get_width(), maze_height),
+        pygame.SRCALPHA,
+    )
+    overlay.fill((0, 0, 0, 160))
+    screen.blit(overlay, (0, 0))
+
+    rect = text.get_rect(
+        center=(screen.get_width() // 2, maze_height // 2)
+    )
+
+    screen.blit(text, rect)
+
+
+def handle_input(
     event: pygame.event.Event,
     game: GameState,
 ) -> bool:
-    """Process input; return False to quit."""
+    """Forward keyboard commands to GameState."""
     if event.key == pygame.K_ESCAPE:
         return False
 
     if event.key == pygame.K_r:
         game.restart()
-        print("Game restarted.")
-        print(f"Lives from config: {game.lives}")
+        print("Game restarted")
         return True
 
     if event.key == pygame.K_p:
         if game.status == GameStatus.PLAYING:
             game.pause()
-            print("Game paused.")
-
         elif game.status == GameStatus.PAUSED:
             game.resume()
-            print("Game resumed.")
-
         return True
 
     if event.key == pygame.K_n:
-        # if game.status == GameStatus.LEVEL_COMPLETE:
         game.next_level()
-        print(
-            f"Started level {game.level_index + 1}"
-        )
         return True
 
     if game.status != GameStatus.PLAYING:
         return True
 
-    directions = {
-        pygame.K_UP: Direction.NORTH,
-        pygame.K_w: Direction.NORTH,
-        pygame.K_RIGHT: Direction.EAST,
-        pygame.K_d: Direction.EAST,
-        pygame.K_DOWN: Direction.SOUTH,
-        pygame.K_s: Direction.SOUTH,
-        pygame.K_LEFT: Direction.WEST,
-        pygame.K_a: Direction.WEST,
-    }
-
-    direction = directions.get(event.key)
+    direction = KEY_DIRECTIONS.get(event.key)
 
     if direction is not None:
         game.set_player_direction(direction)
 
-    elif event.key == pygame.K_SPACE:
-        for ghost in game.ghosts:
-            ghost.frightened()
+    elif event.key == pygame.K_F1:
+        game.toggle_ghost_freeze()
+        print("Ghost Freeze:", game.ghosts_frozen)
 
-        print("DEBUG: Frightened mode activated.")
+    elif event.key == pygame.K_F2:
+        game.toggle_speed_boost()
+        print("Speed Boost:", game.speed_boost)
 
-    elif event.key == pygame.K_e:
-        debug_eat_ghost(game)
-
-    elif event.key == pygame.K_c:
-        # Debug only: force the current Level to complete.
-        game.level.pacgums.clear()
-        game.level.super_pacgums.clear()
-
-        print("DEBUG: All collectibles removed.")
+    elif event.key == pygame.K_F3:
+        game.skip_level()
+        print("Level skipped")
 
     return True
 
 
 def main() -> None:
-    """Run the full Pac-Man engine integration test."""
+    """Run the complete engine integration test."""
     config_path = (
         sys.argv[1]
         if len(sys.argv) > 1
         else "config_file.json"
     )
 
-    # GameState receives the validated configuration.
+    # 1. Load configuration.
     config = ConfigLoader(config_path).load()
+
+    # 2. Initialize the complete backend.
     game = GameState(config)
 
-    print(f"Config file: {config_path}")
-    print(f"Configured lives: {config.lives}")
-    print(f"Actual game lives: {game.lives}")
-    print(f"Number of levels: {len(config.levels)}")
-    print(f"Level time limit: {config.level_max_time}")
-
-    print("\nGhosts:")
-    for ghost in game.ghosts:
-        print(
-            f"{ghost.ghost_type.name}: "
-            f"spawn=({ghost.spawn_row}, {ghost.spawn_col})"
-        )
-
+    # 3. Initialize pygame.
     pygame.init()
 
-    screen = create_window(game)
+    screen = create_screen(game)
     pygame.display.set_caption(
-        "Pac-Man - GameState Integration Test"
+        "Pac-Man - Complete Engine Test"
     )
 
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, 22)
 
-    print_controls()
+    print("=== PAC-MAN ENGINE TEST ===")
+    print("Configured lives:", config.lives)
+    print("Levels:", len(config.levels))
+    print("Player speed:", game.player.speed)
+    print("Ghosts:", len(game.ghosts))
+    print("Press F1/F2/F3 to test cheats")
 
     running = True
-
     previous_level = game.level_index
     previous_status = game.status
-    previous_lives = game.lives
-    previous_score = game.score
 
     while running:
+        # 4. Calculate delta time.
         dt = min(clock.tick(FPS) / 1000.0, 0.05)
 
-        # FRONTEND: Process input.
+        # 5. Handle frontend input.
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
             elif event.type == pygame.KEYDOWN:
-                running = handle_keydown(event, game)
+                running = handle_input(event, game)
 
             if not running:
                 break
@@ -495,56 +329,33 @@ def main() -> None:
         if not running:
             break
 
-        # BACKEND: Update the complete game simulation.
+        # 6. Update the backend.
         game.update(dt)
 
-        # Resize when changing levels with different dimensions.
+        # 7. Resize the window if a new level has
+        # different dimensions.
         if game.level_index != previous_level:
-            screen = create_window(game)
+            screen = create_screen(game)
             previous_level = game.level_index
-
-        # Print important changes for debugging.
-        if game.lives != previous_lives:
-            print(f"Lives: {previous_lives} -> {game.lives}")
-            previous_lives = game.lives
-
-        if game.score != previous_score:
-            print(f"Score: {previous_score} -> {game.score}")
-            previous_score = game.score
+            print("Now playing level:", previous_level + 1)
 
         if game.status != previous_status:
             print(
-                f"Status: {previous_status.name} -> "
-                f"{game.status.name}"
+                "Game status:",
+                previous_status.name,
+                "->",
+                game.status.name,
             )
-
             previous_status = game.status
 
-        # FRONTEND: Render current engine state.
-        screen.fill(COLOR_BG)
+        # 8. Render the current state.
+        screen.fill(BLACK)
 
-        draw_raw_maze(
-            screen,
-            game.level.maze,
-        )
-
-        draw_pacgums(
-            screen,
-            game.level.pacgums,
-        )
-
-        draw_super_pacgums(
-            screen,
-            game.level.super_pacgums,
-        )
-
-        draw_player(screen, game)
-
-        for ghost in game.ghosts:
-            draw_ghost(screen, ghost)
-
+        draw_maze(screen, game.level.maze)
+        draw_collectibles(screen, game)
+        draw_entities(screen, game)
         draw_hud(screen, game, font)
-        draw_status_message(screen, game, font)
+        draw_status(screen, game)
 
         pygame.display.flip()
 
