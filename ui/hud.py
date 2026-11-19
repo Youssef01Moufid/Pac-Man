@@ -27,6 +27,7 @@ class Hud:
         texts = [
             f"SCORE {self.game.score}",
             f"LIVES {self.game.lives}",
+            f"LEVEL {self.game.level_index + 1}",
             f"TIME {int(self.game.time_left)}"
         ]
 

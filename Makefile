@@ -24,3 +24,7 @@ lint:
 lint-strict:
 	uv run flake8 .
 	uv run mypy . --strict
+
+
+test:
+	uv run python new_test.py
