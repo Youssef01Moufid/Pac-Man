@@ -3,6 +3,8 @@ from ui.scene_manager import SceneManager
 from ui.widgets.button import Button
 from ui.widgets.menu import Menu
 from ui.scenes.game_scene import GameScene
+from ui.scenes.highscores_scene import HighscoresScene
+from ui.highscores import HighScoreManger
 from game.gamestate import GameState
 from config.model import Config
 import os
@@ -19,13 +21,15 @@ class MainMenuScene(Scene):
             manager: SceneManager,
             width: int,
             height: int,
-            config: Config
+            config: Config,
+            highscoremanger: HighScoreManger
             ) -> None:
         
         super().__init__(manager)
         self.width = width
         self.height = height
         self.config = config
+        self.highscoremanger = highscoremanger
         self.menu = Menu(
             [
                 Button("START GAME ", self._start),
@@ -44,22 +48,19 @@ class MainMenuScene(Scene):
 
     def _start(self) -> None:
         game = GameState(self.config)
-        self.manager.replace(GameScene(self.manager, self.width, self.height, game, self.config))
+        self.manager.replace(GameScene(self.manager, self.width, self.height, game, self.config, self.highscoremanger))
     
     def _instructions(self) -> None:
         print("INSTRUCTIONS")
     
     def _high_scores(self) -> None:
-        print("HIGHSCORES")
+        self.manager.replace(HighscoresScene(self.manager, self.highscoremanger, self.config, self.width, self.height))
 
     def _quit(self) -> None:
         self.manager.quit()
     
 
     def handle_events(self, event: pygame.event.Event) -> None:
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            self._quit()
-        else:
             self.menu.handle_event(event)
 
 

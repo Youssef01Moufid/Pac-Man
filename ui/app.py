@@ -8,7 +8,7 @@ import pygame
 from config.model import Config
 from ui.scene_manager import SceneManager
 from ui.scenes.mainmenu_scene import MainMenuScene
-
+from ui.highscores import HighScoreManger
 
 class App:
 
@@ -19,12 +19,14 @@ class App:
         self.manager = SceneManager()
         self.surface = pygame.display.set_mode(flags=pygame.FULLSCREEN)
         self.clock = pygame.time.Clock()
+        self.highscoremanger = HighScoreManger(config.highscore_filename)
+        self.highscoremanger.load()
         self.make_menu(config)
 
     def make_menu(self, config: Config) -> None:
         """"""
         w, h = self.surface.get_size()
-        self.manager.push(MainMenuScene(self.manager, w, h, config))
+        self.manager.push(MainMenuScene(self.manager, w, h, config, self.highscoremanger))
 
 
     def run(self) -> None:

@@ -7,6 +7,7 @@ from model.player import Direction
 from config.model import Config
 from game.gamestate import GameStatus
 from model.ghost import GhostType, GhostState
+from ui.highscores import HighScoreManger
 
 import os
 import math
@@ -24,6 +25,7 @@ class GameScene(Scene):
             height: int,
             game: GameState,
             config: Config,
+            hihgscoremanger: HighScoreManger 
             ) -> None:
         super().__init__(manager)
         self.width = width
@@ -31,6 +33,7 @@ class GameScene(Scene):
         self.game = game
         self.hud = Hud(self.game)
         self.config = config
+        self.highscoremanger = hihgscoremanger
 
     def handle_events(self, event: pygame.event.Event) -> None:
         """ Handle event from the app and send it into the game """
@@ -38,8 +41,8 @@ class GameScene(Scene):
             from ui.scenes.pause_scene import PauseScene
             if self.game.status == GameStatus.PLAYING:
                 self.game.pause()
-            self.manager.push(PauseScene(self.manager, self.width, self.height, self.game,self.config))
-        
+            self.manager.push(PauseScene(self.manager, self.width, self.height, self.game, self.config, self.highscoremanger))
+         
         if event.type == pygame.KEYDOWN:
             if event.key in (pygame.K_UP, pygame.K_w):
                 self.game.set_player_direction(Direction.NORTH)
@@ -70,7 +73,7 @@ class GameScene(Scene):
         # try:
         if self.game.status in  (GameStatus.GAME_WON, GameStatus.GAME_OVER):
             from ui.scenes.mainmenu_scene import MainMenuScene
-            self.manager.replace(MainMenuScene(self.manager, self.width, self.height, self.config))
+            self.manager.replace(MainMenuScene(self.manager, self.width, self.height, self.config, self.highscoremanger))
         self.game.update(dt)
 
         # if self.game.is_over:

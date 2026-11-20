@@ -1,66 +1,112 @@
+"""Class Responsible to manage the scores scored in the game """
+
 import json
+from typing import Any
+import sys
 
-class HighScoreManager:
-    """ Manager Score """
-    MAX_ENTRIES = 10
+class HighScoreManger:
 
-    def __init__(
-        self,
-        path: str
-    ) -> None:
-        """ Initialize the  highescoreManger """
-        self.path = path
-        self._entries: list[tuple[str, int]] = []
+    MAX_ENTIRES = 10
+    MAX_LENGHT_NAME = 10
+
+    def __init__(self, path: str) -> str:
+        self._path = path
+        self._entries = []
     
 
     def load(self) -> None:
-        """ load the data inside the path file """
-        try:
-            with open(self.path, 'r') as f:
-                data = json.load(f)
-            for element in data:
-                if not element['name']:
-                    continue
-                if element['score'] < 0:
-                    continue
-                name, score = element['name'], element['score']
-                self._entries.append((name, score))
+        # the goal is top open a file and the check get the entire data with in it
+        self._entries = []
 
+        try:
+            with open(self._path, 'r') as f:
+                data = json.load(f)
         except FileNotFoundError:
-            with open(self.path, 'w') as f:
-                json.dump(self._entries, f)
-        except OSError:
-            print("error OS")
+            print(f"No highscore file at '{self._path}', starting empty.",
+                  file=sys.stderr)
+            return
         except json.JSONDecodeError:
-            print("Error json")
-    
-    def add(self, name: str, score) -> None:
-        self._entries.append((name, score))
-        self._entries = sorted(self._entries, key=lambda e: e[1], reverse=True)[:10]
+            print(f"Highscore file '{self._path}' is corrupted, "
+                  "starting empty.", file=sys.stderr)
+            return
+        except OSError:
+            print(f"Cannot read highscore file '{self._path}': {e}",
+                  file=sys.stderr)
+            return
+        
+        if not isinstance(data, list):
+            print(f"Highscore file '{self._path}' is not a list, "
+                  "starting empty.", file=sys.stderr)
+            return
+        
+        valid: list[tuple[str, int]] = []
+        for element in data:
+            entry = self._parse_element(element)
+            if entry is None:
+                print(f"Skipping invalid highscore entry: {element!r}",
+                      file=sys.stderr)
+                continue
+            valid.append(entry)
+
+        self._entries = self._rank(valid)
+
+    def add(self, name: str, score: int) -> None:
+        entry = self._parse_element({"name": name, "score": score})
+        if entry is None:
+            raise ValueError(f"Invalid highscore: {name!r}, {score!r}")
+        self._entries = self._rank(self._entries + [entry])
 
 
     def save(self) -> None:
-        list_to_save = []
-        for name, score in self._entries:
-            list_to_save.append({
-                "name": name,
-                "score": score
-            })
+        """ write to list on the disk never raise the disk Errors"""
+        data = [{"name": name, "score": score} for name, score in self._entries]
         try:
-            with open(self.path, 'w') as f:
-                json.dump(list_to_save, f)
-        except OSError:
-            print("OS Error")
+            with open(self._path, 'w', encoding="utf-8") as f:
+                json.dump(f, indent=2)
+        except OSError as e:
+            print(f"Cannot save highscores to '{self._path}': {e}",
+                  file=sys.stderr)
+
+    
+    def is_highscore(self, score: int) -> bool:
+        """ Check the score if is valid to be store as a highscore"""
+        if score < 0:
+            return False
+        
+        if len(self._entries) < self.MAX_ENTIRES:
+            return True
+        
+        return score > self._entries[-1][1]
+    
 
     @property
     def entries(self):
+        """ Return a copy of the list of the highest score """
         return list(self._entries)
+    
 
+    def _parse_element(self, element: Any) -> tuple[str, int] | None:
+        """ check the element is a dictionary with name key and score key"""
+        if not isinstance(element, dict):
+            return None
+        
+        name = element.get("name")
+        score = element.get("score")
 
+        if not isinstance(name, str):
+            return None
+        name = name.strip()
+        if not name or len(name) >  self.MIN_LENGHT_NAME:
+            return None
+        
+        if isinstance(score, bool) or not isinstance(score, int):
+            return None
+        if score < 0:
+            return None
+        return (name, score)
+    
 
-
-if __name__ == "__main__":
-
-    my_highsores = HighScoreManager("highscores.json")
-    my_highsores.load()
-    print(my_highsores.entries)
+    def _rank(self, valid_entries: list[tuple[str, int]]) -> list[tuple[str, int]]:
+        """ rank from the highes score to lowest and return the max entries"""
+        ranked = sorted(valid_entries, key=lambda e: e[1], reverse=True)
+        return ranked[:self.MAX_ENTIRES]

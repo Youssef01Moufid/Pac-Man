@@ -1,4 +1,5 @@
 from ui.app import App
+from ui.highscores import HighScoreManger
 from config.loader import ConfigLoader
 from game.gamestate import GameState
 import sys
