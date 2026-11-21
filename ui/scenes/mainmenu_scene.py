@@ -48,7 +48,15 @@ class MainMenuScene(Scene):
 
     def _start(self) -> None:
         game = GameState(self.config)
-        self.manager.replace(GameScene(self.manager, self.width, self.height, game, self.config, self.highscoremanger))
+        self.manager.replace(
+            GameScene(
+                self.manager,
+                self.width,
+                self.height,
+                game,
+                self.config,
+                self.highscoremanger
+            ))
     
     def _instructions(self) -> None:
         print("INSTRUCTIONS")

@@ -8,6 +8,7 @@ from config.model import Config
 from game.gamestate import GameStatus
 from model.ghost import GhostType, GhostState
 from ui.highscores import HighScoreManger
+from ui.scenes.end_scene import EndScene
 
 import os
 import math
@@ -72,8 +73,13 @@ class GameScene(Scene):
         """"""
         # try:
         if self.game.status in  (GameStatus.GAME_WON, GameStatus.GAME_OVER):
+            won = True
+            if self.game.status == GameStatus.GAME_OVER:
+                won = False
+            score = self.game.score
             from ui.scenes.mainmenu_scene import MainMenuScene
-            self.manager.replace(MainMenuScene(self.manager, self.width, self.height, self.config, self.highscoremanger))
+            self.manager.replace(
+                EndScene(self.manager, self.width, self.height, self.config, self.highscoremanger, score, won, self.game))
         self.game.update(dt)
 
         # if self.game.is_over:

@@ -62,7 +62,7 @@ class HighScoreManger:
         data = [{"name": name, "score": score} for name, score in self._entries]
         try:
             with open(self._path, 'w', encoding="utf-8") as f:
-                json.dump(f, indent=2)
+                json.dump(data, f, indent=2)
         except OSError as e:
             print(f"Cannot save highscores to '{self._path}': {e}",
                   file=sys.stderr)
@@ -96,7 +96,7 @@ class HighScoreManger:
         if not isinstance(name, str):
             return None
         name = name.strip()
-        if not name or len(name) >  self.MIN_LENGHT_NAME:
+        if not name or len(name) >  self.MAX_LENGHT_NAME:
             return None
         
         if isinstance(score, bool) or not isinstance(score, int):
