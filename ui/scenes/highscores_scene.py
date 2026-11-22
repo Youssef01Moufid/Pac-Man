@@ -16,7 +16,7 @@ class HighscoresScene(Scene):
     BACKGROUND: Color = (0, 0, 0)
     PANEL: Color = (22, 26, 56)
     BORDER: Color = "blue"
-    STRIPE: Color = "white"
+    STRIPE: Color = (22, 26, 56)
     TITLE: Color = (255, 215, 0)
     HEADER: Color = "yellow"
     TEXT: Color = (235, 235, 245)
