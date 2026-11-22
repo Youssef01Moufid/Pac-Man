@@ -13,14 +13,14 @@ FONT_URL = os.path.join('assets', 'fonts', 'PressStart2P-Regular.ttf')
 class HighscoresScene(Scene):
     """Shows the top 10 in 3 columns: rank, name, score."""
 
-    BACKGROUND: Color = (12, 14, 32)
+    BACKGROUND: Color = (0, 0, 0)
     PANEL: Color = (22, 26, 56)
-    BORDER: Color = (60, 70, 160)
-    STRIPE: Color = (28, 33, 68)
+    BORDER: Color = "blue"
+    STRIPE: Color = "white"
     TITLE: Color = (255, 215, 0)
-    HEADER: Color = (130, 140, 190)
+    HEADER: Color = "yellow"
     TEXT: Color = (235, 235, 245)
-    HINT: Color = (150, 150, 170)
+    HINT: Color = "white"
     PODIUM: dict[int, Color] = {
         1: (255, 215, 0),     # gold
         2: (200, 205, 215),   # silver
@@ -30,9 +30,15 @@ class HighscoresScene(Scene):
     def __init__(self, manager: Any, highscores: HighScoreManger, config: Config, width: int, height: int) -> None:
         super().__init__(manager)
         self.highscores = highscores
+        try:
+            self.title_font = pygame.font.Font(FONT_URL, 42)
+        except Exception:
+            self.title_font = pygame.font.Font(None, 80)
 
-        self.title_font = pygame.font.Font(None, 80)
-        self.header_font = pygame.font.Font(None, 30)
+        try:          
+            self.header_font = pygame.font.Font(FONT_URL, 18)
+        except Exception:
+            self.header_font = pygame.font.Font(None, 30)
         self.row_font = pygame.font.Font(None, 40)
         self.hint_font = pygame.font.Font(None, 28)
         self.config = config
@@ -45,7 +51,7 @@ class HighscoresScene(Scene):
             self._back_to_menu()
 
     def update(self, dt: float) -> None:
-        pass    # nothing moves on this screen
+        pass
 
     def draw(self, surface: pygame.Surface) -> None:
         width, height = surface.get_size()

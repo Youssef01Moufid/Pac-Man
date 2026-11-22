@@ -1,4 +1,4 @@
-from mazegenerator.mazegenerator import MazeGenerator
+from mazegenerator.mazegenerator import MazeGenerator # type: ignore[import-untyped]
 
 
 class MazeGen:
