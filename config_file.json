@@ -7,10 +7,10 @@
     "seed": 42,
     "levels": [
         
-        {"width": 3, "height": 3, "pacgum": 5, "level_max_time": 90}, {"width": 21, "height": 21, "pacgum": 1, "level_max_time": 90},
-        {"width": 25, "height": 25, "pacgum": 1, "level_max_time": 90}, {"width": 25, "height": 25, "pacgum": 1, "level_max_time": 90},
-        {"width": 31, "height": 21, "pacgum": 1, "level_max_time": 90}, {"width": 31, "height": 25, "pacgum": 1, "level_max_time": 90},
-        {"width": 35, "height": 25, "pacgum": 1, "level_max_time": 90}, {"width": 41, "height": 25, "pacgum": 1, "level_max_time": 90},
-        {"width": 41, "height": 31, "pacgum": 1, "level_max_time": 90}, {"width": 51, "height": 31, "pacgum": 1, "level_max_time": 90}
+        {"width": 3, "height": 3, "pacgum":440, "level_max_time": 90}, {"width": 21, "height": 21, "pacgum": 1, "level_max_time": 90},
+        {"width": 25, "height": 25, "pacgum": 100, "level_max_time": 90}, {"width": 25, "height": 25, "pacgum": 1, "level_max_time": 90},
+        {"width": 31, "height": 21, "pacgum": 100, "level_max_time": 90}, {"width": 31, "height": 25, "pacgum": 1, "level_max_time": 90},
+        {"width": 35, "height": 25, "pacgum": 100, "level_max_time": 90}, {"width": 41, "height": 25, "pacgum": 1, "level_max_time": 90},
+        {"width": 41, "height": 31, "pacgum": 100, "level_max_time": 90}, {"width": 51, "height": 31, "pacgum": 1, "level_max_time": 90}
     ]
 }
