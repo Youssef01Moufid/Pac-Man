@@ -19,4 +19,4 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error {e}", file=sys.stderr)
     except KeyboardInterrupt:
-        print(f"Signal ctr+c was hitted")
+        print(f"Keyboard Signal send", file=sys.stderr)
