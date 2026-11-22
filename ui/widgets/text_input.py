@@ -11,7 +11,7 @@ class TextInput(Widget):
 
 
     def handle_event(self, event: pygame.event.Event) -> None:
-        """" """
+        """ """
         if event.type == pygame.TEXTINPUT:
             for ch in event.text:
                 if ch.isalnum() and len(self.value) < 10:

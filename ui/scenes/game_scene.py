@@ -71,7 +71,7 @@ class GameScene(Scene):
 
     def update(self, dt: float) -> None:
         """"""
-        # try:
+
         if self.game.status in  (GameStatus.GAME_WON, GameStatus.GAME_OVER):
             won = True
             if self.game.status == GameStatus.GAME_OVER:
@@ -82,9 +82,7 @@ class GameScene(Scene):
                 EndScene(self.manager, self.width, self.height, self.config, self.highscoremanger, score, won, self.game))
         self.game.update(dt)
 
-        # if self.game.is_over:
-        #     from ui.scenes.mainmenu_scene import MainMenuScene
-        #     self.manager.replace(MainMenuScene(self.manager, self.width, self.height))
+       
     
 
     def _get_cell_size(self, surface: pygame.Surface) -> int:

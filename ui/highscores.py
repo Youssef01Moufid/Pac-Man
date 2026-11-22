@@ -15,7 +15,6 @@ class HighScoreManger:
     
 
     def load(self) -> None:
-        # the goal is top open a file and the check get the entire data with in it
         self._entries = []
 
         try:
