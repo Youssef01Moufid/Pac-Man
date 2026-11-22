@@ -48,11 +48,11 @@ class EndScene(Scene):
 
     def handle_events(self, event: pygame.event.Event) -> None:
         if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-            from ui.scenes.mainmenu_scene import MainMenuScene
+            from ui.scenes.highscores_scene import HighscoresScene
             if self.name_input.value:
                 self.highscoremanager.add(self.name_input.value, self.game.score)
                 self.highscoremanager.save()
-                self.manager.replace(MainMenuScene(self.manager, self.width, self.height, self.config, self.highscoremanager))
+                self.manager.replace(HighscoresScene(self.manager, self.highscoremanager, self.config, self.width, self.height))
         self.name_input.handle_event(event)
 
 
