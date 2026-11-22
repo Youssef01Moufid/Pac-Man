@@ -15,7 +15,6 @@ FONT_URL = os.path.join('assets', 'fonts', 'PressStart2P-Regular.ttf')
 
 class MainMenuScene(Scene):
     """"""
-    
     def __init__(
             self,
             manager: SceneManager,
@@ -62,7 +61,14 @@ class MainMenuScene(Scene):
         print("INSTRUCTIONS")
     
     def _high_scores(self) -> None:
-        self.manager.replace(HighscoresScene(self.manager, self.highscoremanger, self.config, self.width, self.height))
+        self.manager.replace(
+            HighscoresScene(
+                self.manager,
+                self.highscoremanger,
+                self.config,
+                self.width,
+                self.height
+            ))
 
     def _quit(self) -> None:
         self.manager.quit()
@@ -93,7 +99,7 @@ class MainMenuScene(Scene):
             sub_font = pygame.font.Font(FONT_URL, 16)
         except (OSError, FileNotFoundError):
             sub_font = pygame.font.Font(None, 14)
-        sub = sub_font.render("GHOSTS!  MORE GHOSTS!", 8, (255, 184, 255))
+        sub = sub_font.render("GHOSTS!  MORE GHOSTS!", True, (255, 184, 255))
         heigh_screen = surface.get_height()
         
         surface.blit(sub, sub.get_rect(midtop=(width_scren // 2, heigh_screen // 3)))

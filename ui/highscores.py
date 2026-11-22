@@ -9,9 +9,9 @@ class HighScoreManger:
     MAX_ENTIRES = 10
     MAX_LENGHT_NAME = 10
 
-    def __init__(self, path: str) -> str:
+    def __init__(self, path: str) -> None:
         self._path = path
-        self._entries = []
+        self._entries: list[tuple[str, int]] = []
     
 
     def load(self) -> None:
@@ -29,7 +29,7 @@ class HighScoreManger:
             print(f"Highscore file '{self._path}' is corrupted, "
                   "starting empty.", file=sys.stderr)
             return
-        except OSError:
+        except OSError as e:
             print(f"Cannot read highscore file '{self._path}': {e}",
                   file=sys.stderr)
             return

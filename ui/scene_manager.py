@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 class SceneManager:
     """"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """"""
         self._stack : list[Scene] = []
         self.running: bool = True
