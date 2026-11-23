@@ -60,8 +60,10 @@ class MainMenuScene(Scene):
     def _instructions(self) -> None:
         from ui.scenes.instrcution_scene import InstructionScene
         self.manager.push(
-            InstructionScene(self.manager)
-        )
+            InstructionScene(
+                self.manager,
+                self.config
+            ))
     
     def _high_scores(self) -> None:
         self.manager.replace(

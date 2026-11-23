@@ -44,6 +44,7 @@ class HighscoresScene(Scene):
         self.config = config
         self.width = width
         self.height = height
+        self.time = 0.0
     
     def handle_events(self, event: pygame.event.Event) -> None:
         if event.type == pygame.KEYDOWN and event.key in (
@@ -51,7 +52,7 @@ class HighscoresScene(Scene):
             self._back_to_menu()
 
     def update(self, dt: float) -> None:
-        pass
+        self.time += dt        
 
     def draw(self, surface: pygame.Surface) -> None:
         width, height = surface.get_size()
@@ -103,7 +104,8 @@ class HighscoresScene(Scene):
             self._draw_text(surface, str(score), self.row_font, color,
                             topright=(score_x, y))
 
-        self._draw_centered(surface, "Enter / Esc: Back", self.hint_font,
+        if int(self.time * 2) % 2 == 0:
+            self._draw_centered(surface, "Enter / Esc: Back", self.hint_font,
                             self.HINT, width // 2, int(height * 0.94))
 
     def _back_to_menu(self) -> None:
