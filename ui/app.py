@@ -1,14 +1,14 @@
 """
-    Module is to load a screen surface and draw into it.
-    And this using pygame
+Module is to load a screen surface and draw into it.
+And this using pygame
 """
-
 
 import pygame
 from config.model import Config
 from ui.scene_manager import SceneManager
 from ui.scenes.mainmenu_scene import MainMenuScene
 from ui.highscores import HighScoreManger
+
 
 class App:
 
@@ -26,8 +26,9 @@ class App:
     def make_menu(self, config: Config) -> None:
         """"""
         w, h = self.surface.get_size()
-        self.manager.push(MainMenuScene(self.manager, w, h, config, self.highscoremanger))
-
+        self.manager.push(
+            MainMenuScene(self.manager, w, h, config, self.highscoremanger)
+        )
 
     def run(self) -> None:
         """"""
@@ -36,7 +37,7 @@ class App:
                 dt = min(self.clock.tick(60) / 1000.0, 0.05)
 
                 for event in pygame.event.get():
-                
+
                     if event.type == pygame.QUIT:
                         self.manager.quit()
                         break
@@ -44,7 +45,7 @@ class App:
                     top = self.manager.top()
                     if top:
                         top.handle_events(event)
-                
+
                 top = self.manager.top()
                 if top is None:
                     self.manager.quit()
@@ -52,7 +53,6 @@ class App:
                     top.update(dt)
                     self.manager.draw(self.surface)
                 pygame.display.flip()
-
 
         finally:
             pygame.quit()

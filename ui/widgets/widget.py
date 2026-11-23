@@ -8,7 +8,6 @@ class Widget(ABC):
     @abstractmethod
     def handle_event(self, event: pygame.event.Event) -> None:
         "abstract method to handle inputs"
-    
 
     @abstractmethod
     def draw(self, screen: pygame.Surface, selected: bool = False) -> None:

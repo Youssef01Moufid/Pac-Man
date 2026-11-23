@@ -12,14 +12,12 @@ class SceneManager:
 
     def __init__(self) -> None:
         """"""
-        self._stack : list[Scene] = []
+        self._stack: list[Scene] = []
         self.running: bool = True
 
-    
     def push(self, scene: Scene) -> None:
         """"""
         self._stack.append(scene)
-    
 
     def pop(self) -> None:
         """"""
@@ -27,14 +25,12 @@ class SceneManager:
             self._stack.pop()
         else:
             self.running = False
-    
 
     def replace(self, scene: Scene) -> None:
         """"""
         if self._stack:
             self._stack.pop()
         self._stack.append(scene)
-    
 
     def top(self) -> Scene | None:
         """"""
@@ -43,9 +39,8 @@ class SceneManager:
     def quit(self) -> None:
         """"""
         self.running = False
-    
+
     def draw(self, surface: pygame.Surface) -> None:
         """"""
         for scene in self._stack:
             scene.draw(surface)
-            

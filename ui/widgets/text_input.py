@@ -3,12 +3,11 @@ from ui.widgets.widget import Widget
 
 import pygame
 
+
 class TextInput(Widget):
 
     def __init__(self) -> None:
         self.value = ""
-
-
 
     def handle_event(self, event: pygame.event.Event) -> None:
         """ """
@@ -21,5 +20,3 @@ class TextInput(Widget):
 
     def draw(self, screen: pygame.Surface, selected: bool = False) -> None:
         """Nothing this widget to draw"""
-
-

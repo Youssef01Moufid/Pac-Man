@@ -11,14 +11,14 @@ if TYPE_CHECKING:
 
 class Scene(ABC):
     """"""
+
     def __init__(self, manager: SceneManager):
         self.manager = manager
-    
 
     @abstractmethod
     def handle_events(self, event: pygame.event.Event) -> None:
         """"""
- 
+
     @abstractmethod
     def update(self, dt: float) -> None:
         """"""
