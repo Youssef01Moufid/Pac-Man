@@ -3,7 +3,13 @@ import random
 
 class Populate:
 
-    def __init__(self, maze: list[list[int]], width: int, height: int, pacgum_count: int) -> None:
+    def __init__(
+        self,
+        maze: list[list[int]],
+        width: int,
+        height: int,
+        pacgum_count: int
+    ) -> None:
         self.width = width
         self.height = height
         self.maze = maze
@@ -20,7 +26,11 @@ class Populate:
 
         return open_cells
 
-    def _getDist(self, center_w: int, center_h: int) -> dict[tuple[int, int], int]:
+    def _getDist(
+        self,
+        center_w: int,
+        center_h: int
+    ) -> dict[tuple[int, int], int]:
         """Calculate Manhattan distance to the center."""
         openCells: list[tuple[int, int]] = self._get_OpenCells()
         dists: dict[tuple[int, int], int] = {}
@@ -37,7 +47,7 @@ class Populate:
         center_h = self.height // 2
 
         dists: dict[tuple[int, int], int] = self._getDist(center_w, center_h)
-        playerDim = min(dists, key=dists.get)
+        playerDim = min(dists, key=dists.__getitem__)
         return playerDim
 
     def find_ghosts_spawn(self) -> list[tuple[int, int]]:

@@ -1,4 +1,3 @@
-
 """Table-driven default values and validation rules for Config."""
 
 from abc import ABC, abstractmethod

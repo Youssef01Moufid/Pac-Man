@@ -1,7 +1,12 @@
+
+"""Handle directions and movement validation in the maze."""
+
 from enum import Enum, auto
 
 
 class Direction(Enum):
+    """Represent the four movement directions."""
+
     NORTH = auto()
     EAST = auto()
     SOUTH = auto()
@@ -9,6 +14,7 @@ class Direction(Enum):
 
 
 class Movement:
+    """Validate movement between neighboring maze cells."""
 
     def _get_target_cell(
         self,
@@ -16,6 +22,7 @@ class Movement:
         col: int,
         direction: Direction,
     ) -> tuple[int, int]:
+        """Return the neighboring cell in the given direction."""
 
         target_row = row
         target_col = col
@@ -38,6 +45,7 @@ class Movement:
         maze: list[list[int]],
         direction: Direction,
     ) -> tuple[int, int] | None:
+        """Return the target cell if movement is valid, else None."""
 
         if not maze or not maze[0]:
             return None

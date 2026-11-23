@@ -81,7 +81,7 @@ class MainMenuScene(Scene):
     def handle_events(self, event: pygame.event.Event) -> None:
         self.menu.handle_event(event)
 
-    def update(self, dt: float):
+    def update(self, dt: float) -> None:
         """Nothing to update in the menu"""
 
     def draw_title(self, surface: pygame.Surface) -> None:

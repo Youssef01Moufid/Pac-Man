@@ -20,7 +20,3 @@ clean:
 lint:
 	uv run flake8 .
 	uv run mypy . $(MYPY_FLAGS)
-
-lint-strict:
-	uv run flake8 .
-	uv run mypy . --strict

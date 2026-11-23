@@ -92,7 +92,7 @@ class HighScoreManger:
         return score > self._entries[-1][1]
 
     @property
-    def entries(self):
+    def entries(self) -> list[tuple[str, int]]:
         """Return a copy of the list of the highest score"""
         return list(self._entries)
 

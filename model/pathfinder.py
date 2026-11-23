@@ -1,4 +1,3 @@
-
 from collections import deque
 from model.movement import Direction, Movement
 

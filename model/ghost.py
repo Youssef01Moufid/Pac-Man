@@ -10,6 +10,8 @@ from model.pathfinder import Pathfinder
 
 
 class GhostState(Enum):
+    """Represent the possible states of a ghost."""
+
     NORMAL = auto()
     FRIGHTENED = auto()
     EATEN = auto()
@@ -17,6 +19,8 @@ class GhostState(Enum):
 
 
 class GhostType(Enum):
+    """Represent the four types of ghosts."""
+
     RED = auto()
     PINK = auto()
     CYAN = auto()
@@ -202,7 +206,11 @@ class Ghost(Entity):
 
         self.direction = direction
 
-    def _choose_orange(self, movement: Movement, maze: list[list[int]]) -> None:
+    def _choose_orange(
+        self,
+        movement: Movement,
+        maze: list[list[int]]
+    ) -> None:
 
         d = abs(self.row - self.target_row) + abs(self.col - self.target_col)
 
@@ -211,7 +219,11 @@ class Ghost(Entity):
         else:
             self._choose_random(movement, maze)
 
-    def _choose_random(self, movement: Movement, maze: list[list[int]]) -> None:
+    def _choose_random(
+        self,
+        movement: Movement,
+        maze: list[list[int]]
+    ) -> None:
         valid_directions: list[Direction] = []
 
         for direction in Direction:

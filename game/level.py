@@ -1,6 +1,4 @@
-
 """Represent a maze and its remaining collectibles."""
-
 from enum import Enum, auto
 
 

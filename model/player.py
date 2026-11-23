@@ -1,5 +1,4 @@
 """The player: walks from cell to cell controlled by the keyboard."""
-
 from model.movement import Direction, Movement
 from model.entity import Entity
 
@@ -29,7 +28,8 @@ class Player(Entity):
         movement: Movement,
         maze: list[list[int]],
     ) -> list[tuple[int, int]]:
-        """Check for instant U-turns, then let the parent Entity handle movement."""
+        """Check for instant U-turns,
+        then let the parent Entity handle movement."""
         self._turn_back_if_asked(movement, maze)
 
         return super().update(dt, movement, maze)

@@ -23,9 +23,9 @@ class HighscoresScene(Scene):
     TEXT: Color = (235, 235, 245)
     HINT: Color = (255, 255, 255)
     PODIUM: dict[int, Color] = {
-        1: (255, 215, 0),  # gold
-        2: (200, 205, 215),  # silver
-        3: (205, 127, 50),  # bronze
+        1: (255, 215, 0),
+        2: (200, 205, 215),
+        3: (205, 127, 50),
     }
 
     def __init__(

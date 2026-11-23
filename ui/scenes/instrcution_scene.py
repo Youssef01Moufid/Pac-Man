@@ -35,15 +35,15 @@ class InstructionPage:
 
     title: str
     rows: list[tuple[str, str]]
-    key_color: tuple[int, int, int] = Palette.YELLOW  # RED for cheat page
+    key_color: tuple[int, int, int] = Palette.YELLOW
 
 
 class InstructionScene(Scene):
     """Retro-styled controls, rules and cheats."""
 
-    LINE_HEIGHT = 30  # px between two text lines
-    ROW_GAP = 14  # extra px between two rows
-    COLUMN_GAP = 32  # px between the key and the description
+    LINE_HEIGHT = 30
+    ROW_GAP = 14
+    COLUMN_GAP = 32
 
     def __init__(self, manager: SceneManager, config: Config) -> None:
         super().__init__(manager)
@@ -61,6 +61,7 @@ class InstructionScene(Scene):
             rows=[
                 ("ARROWS/WASD", "MOVE"),
                 ("P / ESC", "PAUSE / RESUME"),
+                ("R / N", "RESTART / NEXT LEVEL"),
                 ("ENTER", "CHOOSE IN MENUS"),
             ],
         )
@@ -139,10 +140,8 @@ class InstructionScene(Scene):
             bottom=dots_y - 30,
         )
 
-        # 5. page dots, centred
         self._draw_page_dots(surface, center_x, dots_y)
 
-        # 6. blinking hint: visible half a second, hidden half a second
         if int(self.time * 2) % 2 == 0:
             self._draw_text(
                 surface,

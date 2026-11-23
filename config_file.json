@@ -1,16 +1,71 @@
+
 {
-    "highscore_filename": "highscores.json",
-    "lives": 5,
-    "points_per_pacgum": 11,
-    "points_per_super_pacgum": 20,
+    "highscore_filename": "./test/highscores.json",
+    "lives": 3,
+    "points_per_pacgum": 10,
+    "points_per_super_pacgum": 50,
     "points_per_ghost": 200,
     "seed": 42,
     "levels": [
-        
-        {"width": 3, "height": 3, "pacgum":440, "level_max_time": 90}, {"width": 21, "height": 21, "pacgum": 1, "level_max_time": 90},
-        {"width": 25, "height": 25, "pacgum": 100, "level_max_time": 90}, {"width": 25, "height": 25, "pacgum": 1, "level_max_time": 90},
-        {"width": 31, "height": 21, "pacgum": 100, "level_max_time": 90}, {"width": 31, "height": 25, "pacgum": 1, "level_max_time": 90},
-        {"width": 35, "height": 25, "pacgum": 100, "level_max_time": 90}, {"width": 41, "height": 25, "pacgum": 1, "level_max_time": 90},
-        {"width": 41, "height": 31, "pacgum": 100, "level_max_time": 90}, {"width": 51, "height": 31, "pacgum": 1, "level_max_time": 90}
+        {
+            "width": -15,
+            "height": 15,
+            "pacgum": 30,
+            "level_max_time": 120
+        },
+        {
+            "width": 19,
+            "height": 19,
+            "pacgum": 45,
+            "level_max_time": 120
+        },
+        {
+            "width": 21,
+            "height": 21,
+            "pacgum": 60,
+            "level_max_time": 120
+        },
+        {
+            "width": 25,
+            "height": 25,
+            "pacgum": 80,
+            "level_max_time": 135
+        },
+        {
+            "width": 29,
+            "height": 25,
+            "pacgum": 100,
+            "level_max_time": 150
+        },
+        {
+            "width": 31,
+            "height": 29,
+            "pacgum": 120,
+            "level_max_time": 165
+        },
+        {
+            "width": 35,
+            "height": 31,
+            "pacgum": 145,
+            "level_max_time": 180
+        },
+        {
+            "width": 39,
+            "height": 35,
+            "pacgum": 180,
+            "level_max_time": 200
+        },
+        {
+            "width": 45,
+            "height": 39,
+            "pacgum": 220,
+            "level_max_time": 240
+        },
+        {
+            "width": 51,
+            "height": 41,
+            "pacgum": 270,
+            "level_max_time": 300
+        }
     ]
 }

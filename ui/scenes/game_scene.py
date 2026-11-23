@@ -78,6 +78,9 @@ class GameScene(Scene):
             elif event.key == pygame.K_F3:
                 self.game.skip_level()
 
+            elif event.key == pygame.K_r:
+                self.game.restart()
+
             elif event.key == pygame.K_n:
                 if self.game.status == GameStatus.LEVEL_COMPLETE:
                     self.game.next_level()
@@ -267,7 +270,6 @@ class GameScene(Scene):
     ) -> None:
         """Draw the shape of the ghost"""
         points = []
-        # head
         steps = 16
         for i in range(steps + 1):
             angle = math.pi * i / steps

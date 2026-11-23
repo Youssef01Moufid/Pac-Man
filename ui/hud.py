@@ -1,6 +1,5 @@
 import pygame
 
-# from ui.game_session import GameSession
 from game.gamestate import GameState
 import os
 

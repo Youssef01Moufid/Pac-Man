@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 class Scene(ABC):
     """"""
 
-    def __init__(self, manager: SceneManager):
+    def __init__(self, manager: SceneManager) -> None:
         self.manager = manager
 
     @abstractmethod
