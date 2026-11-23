@@ -56,6 +56,7 @@ class HighscoresScene(Scene):
     def draw(self, surface: pygame.Surface) -> None:
         width, height = surface.get_size()
         surface.fill(self.BACKGROUND)
+        self._draw_frames(surface)
 
         self._draw_centered(surface, "HIGHSCORES", self.title_font,
                             self.TITLE, width // 2, int(height * 0.12))
@@ -120,3 +121,10 @@ class HighscoresScene(Scene):
                        font: pygame.font.Font, color: Color,
                        x: int, y: int) -> None:
         self._draw_text(surface, text, font, color, center=(x, y))
+
+    def _draw_frames(self, surface: pygame.Surface) -> None:
+        w, h = surface.get_size()
+        outter = pygame.Rect(12, 12, w - 24, h - 24)
+        inner = outter.inflate(-12, -12)
+        pygame.draw.rect(surface, "blue", outter, width=3, border_radius=14)
+        pygame.draw.rect(surface, "blue", inner, width=2, border_radius=8)
