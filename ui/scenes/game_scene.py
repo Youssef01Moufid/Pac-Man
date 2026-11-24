@@ -17,7 +17,7 @@ FONT_URL = os.path.join("assets", "fonts", "PressStart2P-Regular.ttf")
 
 
 class GameScene(Scene):
-
+    """ Game scene class """
     PACMAN_ANIMATION = 20.0
     DIRECTION = 4.0
 
@@ -30,6 +30,7 @@ class GameScene(Scene):
         config: Config,
         hihgscoremanger: HighScoreManger,
     ) -> None:
+        """ Initialize the game """
         super().__init__(manager)
         self.width = width
         self.height = height
@@ -86,7 +87,7 @@ class GameScene(Scene):
                     self.game.next_level()
 
     def update(self, dt: float) -> None:
-        """"""
+        """handle animation into the game """
 
         if self.game.status in (GameStatus.GAME_WON, GameStatus.GAME_OVER):
             won = True
@@ -374,7 +375,7 @@ class GameScene(Scene):
             surface.blit(x, rect)
 
     def draw(self, surface: pygame.Surface) -> None:
-
+        """ draw into the surface the gamescene """
         self.draw_frames(surface)
         self.draw_maze(surface)
         self.draw_super_pacgums(surface)

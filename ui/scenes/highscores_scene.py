@@ -36,6 +36,7 @@ class HighscoresScene(Scene):
         width: int,
         height: int,
     ) -> None:
+        """ Initializin the scene """
         super().__init__(manager)
         self.highscores = highscores
         try:
@@ -63,9 +64,11 @@ class HighscoresScene(Scene):
             self._back_to_menu()
 
     def update(self, dt: float) -> None:
+        """ update to see the escape message """
         self.time += dt
 
     def draw(self, surface: pygame.Surface) -> None:
+        """ draw Highscore scene into the menu"""
         width, height = surface.get_size()
         surface.fill(self.BACKGROUND)
         self._draw_frames(surface)
@@ -165,6 +168,7 @@ class HighscoresScene(Scene):
             )
 
     def _back_to_menu(self) -> None:
+        """ on click replace the scene by the menu """
         from ui.scenes.mainmenu_scene import MainMenuScene
 
         self.manager.replace(
@@ -197,9 +201,11 @@ class HighscoresScene(Scene):
         x: int,
         y: int,
     ) -> None:
+        """ Center the draw text """
         self._draw_text(surface, text, font, color, center=(x, y))
 
     def _draw_frames(self, surface: pygame.Surface) -> None:
+        """ Draw two rectangle into the surface """
         w, h = surface.get_size()
         outter = pygame.Rect(12, 12, w - 24, h - 24)
         inner = outter.inflate(-12, -12)

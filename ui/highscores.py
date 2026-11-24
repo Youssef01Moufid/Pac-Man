@@ -6,15 +6,20 @@ import sys
 
 
 class HighScoreManger:
-
+    """ Class responsible of Managing the game of the class """
     MAX_ENTIRES = 10
     MAX_LENGHT_NAME = 10
 
     def __init__(self, path: str) -> None:
+        """ Initialize the Highscore class """
         self._path = path
         self._entries: list[tuple[str, int]] = []
 
     def load(self) -> None:
+        """
+        load from the path and handle excpetion and add to the entries
+        and rerank the entries
+        """
         self._entries = []
 
         try:
@@ -62,6 +67,7 @@ class HighScoreManger:
         self._entries = self._rank(valid)
 
     def add(self, name: str, score: int) -> None:
+        """ check score and name then append rerank the entries """
         entry = self._parse_element({"name": name, "score": score})
         if entry is None:
             raise ValueError(f"Invalid highscore: {name!r}, {score!r}")

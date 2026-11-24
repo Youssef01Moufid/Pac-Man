@@ -7,11 +7,13 @@ FONT_URL = os.path.join("assets", "fonts", "PressStart2P-Regular.ttf")
 
 
 class Hud:
+    """ class responsible of the draw the game information """
     HEIGHT = 40
     BG = (20, 20, 40)
     FG = (255, 230, 0)
 
     def __init__(self, game: GameState) -> None:
+        """ Initialization of the game """
         self.game = game
         try:
             self.font = pygame.font.Font(FONT_URL, 28)
@@ -19,6 +21,7 @@ class Hud:
             self.font = pygame.font.Font(None, 28)
 
     def draw(self, surface: pygame.Surface) -> None:
+        """ Draw the game hud in the surface top """
         width = surface.get_width()
         pygame.draw.rect(surface, self.BG, (0, 0, width, self.HEIGHT))
 

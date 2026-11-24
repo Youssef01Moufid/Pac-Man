@@ -12,7 +12,7 @@ FONT_URL = os.path.join("assets", "fonts", "PressStart2P-Regular.ttf")
 
 
 class EndScene(Scene):
-
+    """ End Scene to draw to the surface """
     STYLE = {
         True: ("VICTORY!", "yellow", "YOU CLEARED EVERY LEVEL!"),
         False: ("GAME OVER", "red", "THE GHOSTS GOT YOU."),
@@ -29,7 +29,7 @@ class EndScene(Scene):
         won: bool,
         game: GameState,
     ) -> None:
-
+        """ Initializing the last scene """
         super().__init__(manager)
         self.width = width
         self.height = height
@@ -49,6 +49,7 @@ class EndScene(Scene):
         self.name_input = TextInput()
 
     def handle_events(self, event: pygame.event.Event) -> None:
+        """ Handle event method """
         if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
             from ui.scenes.highscores_scene import HighscoresScene
 
@@ -69,7 +70,7 @@ class EndScene(Scene):
         self.name_input.handle_event(event)
 
     def update(self, dt: float) -> None:
-        """ """
+        """ Nothing to update in the menu scene """
 
     def draw_input(self, surface: pygame.Surface) -> None:
         """'ENTER YOUR NAME:' and the box with the typed name."""
@@ -90,7 +91,7 @@ class EndScene(Scene):
         surface.blit(name, name.get_rect(center=box.center))
 
     def draw_frames(self, surface: pygame.Surface) -> None:
-        """ """
+        """ draw two rectangle blue into the surface """
         w, h = surface.get_size()
         outter = pygame.Rect(12, 12, w - 24, h - 24)
         inner = outter.inflate(-12, -12)

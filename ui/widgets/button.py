@@ -12,11 +12,11 @@ FONT_PATH = os.path.join("assets", "fonts", "PressStart2P-Regular.ttf")
 
 
 class Button(Widget):
-
+    """ Class that make button and make it onclick """
     SIZE_FONT = 36
 
     def __init__(self, label: str, on_click: Callable[[], None]) -> None:
-        """"""
+        """Initialize the Button widget instance"""
         self.label = label
         self.on_click = on_click
         self.rect = pygame.Rect(0, 0, 0, 0)
@@ -36,6 +36,7 @@ class Button(Widget):
         self.rect.midtop = position
 
     def draw(self, screen: pygame.Surface, selected: bool = False) -> None:
+        """ Draw the Button on the surface yellow if selected or white"""
         color = "yellow" if selected else "white"
         img = self.font.render(self.label, True, color)
         screen.blit(img, self.rect)

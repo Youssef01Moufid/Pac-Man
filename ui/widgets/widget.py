@@ -4,11 +4,11 @@ import pygame
 
 
 class Widget(ABC):
-
+    """ Absract Interface for the Widgets class"""
     @abstractmethod
     def handle_event(self, event: pygame.event.Event) -> None:
-        "abstract method to handle inputs"
+        """abstract method to handle inputs"""
 
     @abstractmethod
     def draw(self, screen: pygame.Surface, selected: bool = False) -> None:
-        "Each widget should be able to draw himself"
+        """Each widget should be able to draw himself"""

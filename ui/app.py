@@ -11,9 +11,9 @@ from ui.highscores import HighScoreManger
 
 
 class App:
-
+    """ Class where the Scene will be draw """
     def __init__(self, config: Config) -> None:
-        """"""
+        """Initialize the App class """
         pygame.init()
         self.game = config
         self.manager = SceneManager()
@@ -24,14 +24,14 @@ class App:
         self.make_menu(config)
 
     def make_menu(self, config: Config) -> None:
-        """"""
+        """ Make menu Scene as first menu on lunching the game """
         w, h = self.surface.get_size()
         self.manager.push(
             MainMenuScene(self.manager, w, h, config, self.highscoremanger)
         )
 
     def run(self) -> None:
-        """"""
+        """ Run the screen in the main game """
         try:
             while self.manager.running:
                 dt = min(self.clock.tick(60) / 1000.0, 0.05)

@@ -9,6 +9,7 @@ import pygame
 
 
 class PauseScene(Scene):
+    """ Scene draw on top of the game scene with overlay """
     def __init__(
         self,
         manager: SceneManager,
@@ -18,6 +19,7 @@ class PauseScene(Scene):
         config: Config,
         highscoremanger: HighScoreManger,
     ):
+        """ Initializing the scene with menu buttons """
         super().__init__(manager)
         surface = pygame.display.get_surface()
         self.menu = Menu(
@@ -36,11 +38,13 @@ class PauseScene(Scene):
         self.highscoremanger = highscoremanger
 
     def _resume(self) -> None:
+        """ on click pop the scene """
         if self.game.status == GameStatus.PAUSED:
             self.game.resume()
         self.manager.pop()
 
     def _back_to_menu(self) -> None:
+        """ on click return return to the menuscene"""
         from ui.scenes.mainmenu_scene import MainMenuScene
 
         w, h = self.overlay.get_size()
@@ -51,6 +55,7 @@ class PauseScene(Scene):
         )
 
     def handle_events(self, event: pygame.event.Event) -> None:
+        """ Handle events for the menu scene"""
         if event.type == pygame.KEYDOWN and event.key in (
             pygame.K_p,
             pygame.K_ESCAPE,
@@ -60,8 +65,9 @@ class PauseScene(Scene):
         self.menu.handle_event(event)
 
     def update(self, dt: float) -> None:
-        pass
+        """ Nothing to update in the PauseScene"""
 
     def draw(self, surface: pygame.Surface) -> None:
+        """ Copy the surface and draw the menu """
         surface.blit(self.overlay, (0, 0))
         self.menu.draw(surface)
