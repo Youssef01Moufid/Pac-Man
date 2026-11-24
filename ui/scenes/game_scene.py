@@ -59,6 +59,7 @@ class GameScene(Scene):
                 )
             )
 
+
         if event.type == pygame.KEYDOWN:
             if event.key in (pygame.K_UP, pygame.K_w):
                 self.game.set_player_direction(Direction.NORTH)
@@ -81,6 +82,9 @@ class GameScene(Scene):
             elif event.key == pygame.K_n:
                 if self.game.status == GameStatus.LEVEL_COMPLETE:
                     self.game.next_level()
+
+            elif event.key == pygame.K_r:
+                self.game.restart()
 
     def update(self, dt: float) -> None:
         """"""

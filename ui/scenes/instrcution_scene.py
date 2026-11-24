@@ -61,6 +61,7 @@ class InstructionScene(Scene):
             rows=[
                 ("ARROWS/WASD", "MOVE"),
                 ("P / ESC", "PAUSE / RESUME"),
+                ("R / N", "RETSTART / NEXT LEVEL"),
                 ("ENTER", "CHOOSE IN MENUS"),
             ],
         )
