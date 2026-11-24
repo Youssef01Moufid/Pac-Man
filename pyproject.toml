@@ -11,6 +11,7 @@ dependencies = [
 dev = [
     "flake8>=7.4.1",
     "mypy>=2.4.0",
+    "pyinstaller>=6.22.3",
 ]
 
 [tool.uv.sources]

@@ -11,6 +11,7 @@ if __name__ == "__main__":
     )
 
     try:
+        sys.setrecursionlimit(10000)
         config = ConfigLoader(config_path).load()
         App(config).run()
     except Exception as e:

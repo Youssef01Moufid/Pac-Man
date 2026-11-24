@@ -846,9 +846,7 @@ Feature branches allow team members to work independently before integrating the
 
 Project management documentation can be found here:
 
-**[Project Management](./project_management/)**
-
-*Update this link to match the actual directory in your repository.*
+**[Project Management](https://github.com/Youssef01Moufid/Pac-Man)**
 
 ## Resources
 
@@ -889,8 +887,8 @@ AI suggestions were reviewed and adapted to the project's requirements. The team
 
 Developed as part of the **42 curriculum**.
 
-- **[login1]** — Game Engine / Backend
-- **[login2]** — Frontend / Rendering
+- **[ymoufid]** — Game Engine / Backend
+- **[ichokair]** — Frontend / Rendering
 
 ## License
 
