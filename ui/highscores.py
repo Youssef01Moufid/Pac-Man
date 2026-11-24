@@ -4,8 +4,8 @@ import json
 from typing import Any
 import sys
 
-import os
-import pathlib
+from pathlib import Path
+
 
 class HighScoreManger:
     """ Class responsible of Managing the game of the class """
@@ -80,7 +80,7 @@ class HighScoreManger:
         data = [
             {"name": name, "score": score} for name, score in self._entries
         ]
-        path = pathlib.Path(self._path)
+        path = Path(self._path)
         path.parent.mkdir(parents=True, exist_ok=True)
         try:
             with open(self._path, "w", encoding="utf-8") as f:
