@@ -6,9 +6,7 @@ from ui.widgets.text_input import TextInput
 from game.gamestate import GameState
 import pygame
 
-import os
-
-FONT_URL = os.path.join("assets", "fonts", "PressStart2P-Regular.ttf")
+from config.paths import FONT_URL
 
 
 class EndScene(Scene):

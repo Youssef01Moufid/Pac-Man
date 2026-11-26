@@ -7,10 +7,9 @@ from ui.scenes.highscores_scene import HighscoresScene
 from ui.highscores import HighScoreManger
 from game.gamestate import GameState
 from config.model import Config
-import os
 import pygame
 
-FONT_URL = os.path.join("assets", "fonts", "PressStart2P-Regular.ttf")
+from config.paths import FONT_URL
 
 
 class MainMenuScene(Scene):

@@ -16,6 +16,13 @@ debug:
 clean:
 	find . -path ./.venv -prune -o -type d -name __pycache__ -exec rm -rf {} +
 	rm -rf .mypy_cache
+	rm -rf dist build pac-man.spec
+
+build:
+	uv run pyinstaller --onefile --name pac-man \
+	  --add-data "assets:assets" \
+	  --add-data "config_file.json:."\
+	  pac-man.py
 
 lint:
 	uv run flake8 .

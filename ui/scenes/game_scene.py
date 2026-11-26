@@ -10,10 +10,9 @@ from model.ghost import GhostType, GhostState
 from ui.highscores import HighScoreManger
 from ui.scenes.end_scene import EndScene
 
-import os
 import math
 
-FONT_URL = os.path.join("assets", "fonts", "PressStart2P-Regular.ttf")
+from config.paths import FONT_URL
 
 
 class GameScene(Scene):

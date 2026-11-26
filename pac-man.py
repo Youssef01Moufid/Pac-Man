@@ -1,13 +1,13 @@
 from ui.app import App
 from config.loader import ConfigLoader
 import sys
-
+from config.paths import PathChecker
 
 if __name__ == "__main__":
     config_path = (
         sys.argv[1]
         if len(sys.argv) > 1
-        else "config_file.json"
+        else PathChecker().ressource_path("config_file.json")
     )
 
     try:

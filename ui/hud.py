@@ -1,9 +1,7 @@
 import pygame
 
 from game.gamestate import GameState
-import os
-
-FONT_URL = os.path.join("assets", "fonts", "PressStart2P-Regular.ttf")
+from config.paths import FONT_URL
 
 
 class Hud:

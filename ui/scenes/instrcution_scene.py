@@ -3,7 +3,6 @@
 Self-contained: every drawing helper lives in this file.
 """
 
-import os
 from dataclasses import dataclass
 
 import pygame
@@ -12,7 +11,7 @@ from ui.scene import Scene
 from ui.scene_manager import SceneManager
 from config.model import Config
 
-FONT_URL = os.path.join("assets", "fonts", "PressStart2P-Regular.ttf")
+from config.paths import FONT_URL
 
 
 class Palette:

@@ -4,11 +4,7 @@ from __future__ import annotations
 from ui.widgets.widget import Widget
 from typing import Callable
 import pygame
-
-
-import os
-
-FONT_PATH = os.path.join("assets", "fonts", "PressStart2P-Regular.ttf")
+from config.paths import FONT_URL
 
 
 class Button(Widget):
@@ -22,7 +18,7 @@ class Button(Widget):
         self.rect = pygame.Rect(0, 0, 0, 0)
 
         try:
-            self.font = pygame.font.Font(FONT_PATH, self.SIZE_FONT)
+            self.font = pygame.font.Font(FONT_URL, self.SIZE_FONT)
         except (FileNotFoundError, OSError):
             self.font = pygame.font.Font(None, self.SIZE_FONT)
 
