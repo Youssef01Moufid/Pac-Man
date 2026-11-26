@@ -1,17 +1,16 @@
-
 {
-    "highscore_filename": "./Yussef/highscores.json",
+    "highscore_filename": "highscores.json",
     "lives": 3,
-    "points_per_pacgum": 10,
+    "points_per_pacgum": 11,
     "points_per_super_pacgum": 50,
     "points_per_ghost": 200,
     "seed": 42,
     "levels": [
         {
-            "width": -15,
+            "width": 15,
             "height": 15,
             "pacgum": 30,
-            "level_max_time": 120
+            "level_max_time": 90
         },
         {
             "width": 19,
